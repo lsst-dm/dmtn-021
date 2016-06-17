@@ -17,7 +17,7 @@ doc_title: 'Implementation of Image Difference Decorrelation'
 
 # Author names, ordered as a list. Each author name should be formatted as 'First Last'
 authors:
-    - 'David J Reiss'
+    - 'David J Reiss, Robert H. Lupton'
 
 # Current document version
 last_revised: '2016-06-30'

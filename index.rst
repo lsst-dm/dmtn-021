@@ -1,42 +1,48 @@
-..
-  Content of technical report.
+Implementation of Image Difference Decorrelation
+================================================
 
-  See http://docs.lsst.codes/en/latest/development/docs/rst_styleguide.html
-  for a guide to reStructuredText writing.
+Abstract
+--------
 
-  Do not put the title, authors or other metadata in this document;
-  those are automatically added.
+Introduction
+------------
 
-  Use the following syntax for sections:
+The standard method for PSF matching to produce image differences in the
+LSST software stack is the method of Alard & Lupton (1998). This
+algorithm learns a convolution kernel which, when the template image is
+convolved with it, matches the PSF of the template with the science
+image. Do to its use of linear basis functions to model the matching
+kernel, the method can cleanly model a spatially-varying matching
+kernel, as well as a spatially-varying differential background. The
+algorithm has the advantage that it does not require accurate
+measurements of the images' PSFs. Instead it only needs to model the
+differential (potentially spatially-varying) matching kernel in order to
+obtain an accurate subtraction.
 
-  Sections
-  ========
+A disadvantage of this method is that if the template contains
+significant noise (which will be the case when the template is comprised
+of a small number of co-adds) is that the convolution of the template by
+the matching kernel leads to significant covariance of neighboring
+pixels within the subtracted image, which will affect detection
+(http://dmtn-006.lsst.io).
 
-  and
+Proposal
+--------
 
-  Subsections
-  -----------
+Implementation
+--------------
 
-  and
+Conclusions and future work
+---------------------------
 
-  Subsubsections
-  ^^^^^^^^^^^^^^
+References
+----------
 
-  To add images, add the image file (png, svg or jpeg preferred) to the
-  _static/ directory. The reST syntax for adding the image is
+Appendix
+--------
 
-  .. figure:: /_static/filename.ext
-     :name: fig-label
-     :target: http://target.link/url
+Appendix A. Implementation of basic Zahav et al. (2016) algorithm.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-     Caption text.
-
-   Run: ``make html`` and ``open _build/html/index.html`` to preview your work.
-   See the README at https://github.com/lsst-sqre/lsst-report-bootstrap or
-   this repo's README for more info.
-
-   Feel free to delete this instructional comment.
-
-:tocdepth: 1
-
-Write the docs; right here.
+Appendix B. Something else.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
