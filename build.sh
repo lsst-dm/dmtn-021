@@ -1,4 +1,4 @@
-pandoc index.md --from markdown --to rst -s -o index.rst
+pandoc index.md --mathjax --from markdown --to rst -s -o index.rst
 make html
-open _build/html/index.html
+#open _build/html/index.html
 
