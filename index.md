@@ -2,11 +2,11 @@
 
 <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"></script>
 
-## Abstract
+# Abstract
 
 Herein, we describe ...
 
-## Introduction
+# Introduction
 
 The standard method for PSF matching for image subtraction in the LSST software stack is the method of [Alard & Lupton (1998)](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) (hereafter *A&L*). This algorithm learns a convolution kernel which, when convolved with the template image, matches the PSF of the template with that of the science image. Due to its use of linear basis functions to model the matching kernel, the method can cleanly incorporate spatially-varying PSFs (i.e., via a spatially-varying matching kernel), as well as a spatially-varying differential background. The algorithm has the advantage that it does not require measurement of the images' PSFs. Instead it only needs to model the differential (potentially spatially-varying) matching kernel in order to obtain an accurate subtraction.
 
@@ -14,31 +14,47 @@ The [Alard & Lupton (1998)](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) m
 
 While LSST will, over its ten-year span, collect dozens of observations per field and passband, at the onset of the survey, this number will be small enough that this issue of noisy templates will be important. Moreover, if we inted to bin templates by airmass to account for differential chromatic refraction (DCR), then the total number of coadds contributing to each template will by necessity be smaller. Finally, depending upon the flavor of coadd ([Bosch, 2016](http://dmtn-015.lsst.io)) used to construct the template, template noise and the resulting covariances in the image difference will be more or less of an issue as the survey progresses.
 
-## Proposal
+# Proposal
 
 An algorithm developed by [Kaiser, 2001](Addition of Images with Varying Seeing. PSDC-002-011-xx) and later rediscovered by [Zackay, et al (2015)](https://arxiv.org/abs/1512.06879) showed that the noise in a PSF-matched coadd image can be decorrelated via noise whitening (i.e. flattening the noise spectrum). The same principle may also be applied to image differencing ([Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655)). In the case of [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) - based PSF matching, this results in an image difference in Fourier space $\widehat{D}(k)$ (where $\widehat{x}(k)$ denotes the Fourier transform of $D$): 
 
-###### Equation 1.
-\$\$
-	\\widehat{D}(k) = [\\widehat{I}_1(k) - \\widehat{\\kappa}(k) \\widehat{I}_2(k)] \\sqrt{ \\frac{ \\sigma_1^2 + \\sigma_2^2}{ \\sigma_1^2 + \\widehat{\\kappa}^2(k) \\sigma_2^2}}
-\$\$
+<table>
+$$
+\widehat{D}(k) = \big[ \widehat{I}_1(k) - \widehat{\kappa}(k) \widehat{I}_2(k) \big] \sqrt{ \frac{ \sigma_1^2 + \sigma_2^2}{ \sigma_1^2 + \widehat{\kappa}^2(k) \sigma_2^2}}
+$$
+
+<a name="equation-1">Equation 1.</a>
+</table>
 
 Here, $I_1$ and $I_2$ are the two images being subtracted (typically $I_2$ is the template image, which is convolved with the PSF matching kernel $\kappa$). $\sigma_1^2$ and $\sigma_2^2$ are the variances of the two respective images. The term in the square-root of is a *post-subtraction convolution kernel* $\widehat{\phi}(k)$, which, when convolved with the image difference, has the effect of decorrelating the noise in the image difference. Thus, we may perform PSF matching to estimate $\kappa$ by standard methods (e.g., [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) and related methods) and then correct for the noise in the template. This maintains the advantages described previously: the PSFs of $I_1$ and $I_2$ do not need to be measured, and spatial variations in PSFs may be readily accounted for (although see below). The decorrelation can be relatively inexpensive, as it requires (at least) one *FFT* of $\kappa$ and *iFFT* of $\widehat{\phi}(k)$ (which are both small, of the order 1,000 pixels), followed by one convolution.
 
-## Implementation details
+# Implementation details
 
 Since the current implementation of [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) is performed in image space, we chose to implement the image decorrelation in image space as well. The image differencing is performed as usual to estimate $\kappa$ and compute the uncorrected image difference, $I_1 - (\kappa \otimes I_2)$. The *post-subtraction convolution kernel* $\widehat{\phi}(k)$ is then computed in frequency space from $\widehat{\kappa}(k)$, $\sigma_1$, and $\sigma_2$, and is then inverse Fourier-transformed to a kernel $\phi$ in real space. The image difference is then convolved with $\phi$ to obtain the decorrelated image difference, $D(x) = \phi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]$. 
 
-## Results
+# Results
 
-## Conclusions and future work
+We have developed a simple reference implementation of [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A), and applied it to simulated images with point-sources with a variety of signal-to-noise, and different Gaussian PSFs and image variances. We included the capability to simulate spatial PSF variation, including spatially-varying astrometric offsets (which can be incorporated into the [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) PSF matching kernel). An example input template and science image, as well as PSF-matched template and resulting *diffim* is shown in [Figure 1](#figure-1-image-differencing).
 
-### Accounting for spatial variations in PSF matching kernel and noise
+In [Figure 2](#figure-2-kernels), we show the PSF matching kernel ($\kappa$) that was estimated for the images shown in [Figure 1](#figure-1-image-differencing), and the resulting decorrelation kernel, $\phi$. We note that $\phi$ largely has the structure of a delta function, with a small region of negative signal, thus its capability, when convolved with the difference image, to act as an effective "sharpening" kernel.
 
+![](_static/img0.png)
 
+###### Figure 1. Image differencing.
+From left to right, sample (simulated) template image, PSF-matched template, science image, and difference image. In this simulated example, the source near the center was set to increase in flux by 2% between the science and template "exposures."
 
-## References
+![Matching kernel](_static/img1.png)
+![Correction kernel](_static/img2.png)
 
-## Appendix
+###### Figure 2. Kernels.
+Sample PSF matching kernel $\kappa$ (left) and resulting decorrelation kernel, $\phi$ for the images shown in [Figure 1](#figure-1-image-differencing).
+
+# Conclusions and future work
+
+### Accounting for spatial variations in noise and matching kernel
+
+# References
+
+# Appendix
 ### Appendix A. Implementation of basic Zackay et al. (2016) algorithm.
 ### Appendix B. Something else.
