@@ -1,7 +1,4 @@
-.. role:: math(raw)
-   :format: html latex
-..
-
+:tocdepth: 1
 Implementation of Image Difference Decorrelation
 ================================================
 
@@ -91,9 +88,9 @@ methods) and then correct for the noise in the template. This maintains
 the advantages described previously: the PSFs of :math:`I_1` and
 :math:`I_2` do not need to be measured, and spatial variations in PSFs
 may be readily accounted for (although see below). The decorrelation can
-be relatively inexpensive, as it requires (at least one) small *FFT* of
-:math:`\kappa` and *iFFT* of :math:`\widehat{\phi}(k)`, followed by one
-convolution.
+be relatively inexpensive, as it requires (at least) one *FFT* of
+:math:`\kappa` and *iFFT* of :math:`\widehat{\phi}(k)` (which are both
+small, of the order 1,000 pixels), followed by one convolution.
 
 Implementation details
 ----------------------
