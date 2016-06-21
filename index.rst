@@ -67,20 +67,13 @@ matching, this results in an image difference in Fourier space
 :math:`\widehat{D}(k)` (where :math:`\widehat{x}(k)` denotes the Fourier
 transform of :math:`D`):
 
-.. raw:: html
-
-   <table>
-
 .. math::
 
 
    \widehat{D}(k) = \big[ \widehat{I}_1(k) - \widehat{\kappa}(k) \widehat{I}_2(k) \big] \sqrt{ \frac{ \sigma_1^2 + \sigma_2^2}{ \sigma_1^2 + \widehat{\kappa}^2(k) \sigma_2^2}}
 
 Equation 1.
-
-.. raw:: html
-
-   </table>
+-----------
 
 Here, :math:`I_1` and :math:`I_2` are the two images being subtracted
 (typically :math:`I_2` is the template image, which is convolved with
@@ -141,22 +134,98 @@ an effective "sharpening" kernel.
 .. figure:: _static/img0.png
    :alt: 
 
-Figure 1. Image differencing.
------------------------------
+*Figure 1. Image differencing.*
+-------------------------------
 
-From left to right, sample (simulated) template image, PSF-matched
+*From left to right, sample (simulated) template image, PSF-matched
 template, science image, and difference image. In this simulated
 example, the source near the center was set to increase in flux by 2%
-between the science and template "exposures."
+between the science and template "exposures."*
 
 |Matching kernel| |Correction kernel|
 
-Figure 2. Kernels.
-------------------
+*Figure 2. Kernels.*
+--------------------
 
-Sample PSF matching kernel :math:`\kappa` (left) and resulting
+*Sample PSF matching kernel :math:`\kappa` (left) and resulting
 decorrelation kernel, :math:`\phi` for the images shown in `Figure
+1 <#figure-1-image-differencing>`__.*
+
+When we convolve :math:`\phi` (`Figure 2 <#figure-2-kernels>`__, right
+panel) with the raw image difference (`Figure
+1 <#figure-1-image-differencing>`__, right-most panel), we obtain the
+decorrelated image, shown in the left-most panel of `Figure
+3 <#figure-3-decorrelated-diffim>`__. While the noise visually appears
+to be greater in the decorrelated image, a closer look at the statistics
+reveals that this is indeed the case (`Figure
+4 <#figure-4-decorrelated-image-statistics>`__ and `Figure
+5 <figure-5>`__). `Figure 4 <#figure-4-decorrelated-image-statistics>`__
+shows that the variance of the decorrelated image has increased. Indeed,
+the measured variances reveal that the variance of the uncorrected image
+difference was lower than expected, while the decorrelation has
+increased the variance to the expected level:
+
+.. code:: python
+
+    %In [1]:
+    print sig1, sig2  # Input std. deviation of template and science images
+    print 'Corrected:', np.mean(diffim2), np.std(diffim2)
+    print 'Original: ', np.mean(diffim1), np.std(diffim1)
+    print 'Expected: ', np.sqrt(sig1**2 + sig2**2)
+    %Out [1]:
+    0.2 0.2
+    Corrected: 10.0042330181 0.293237231242
+    Original:  9.99913482654 0.211891941431
+    Expected:  0.282842712475
+
+In addition, we see (`Figure 5 <#figure-5-covariance-matrices>`__) that
+the covariances between neighboring pixels in the image difference has
+been significantly decreased following convolution with the
+decorrelation kernel. The covariance matrix has been significantly
+diagonalized:
+
+.. code:: python
+
+    %In [2]:
+    print np.nansum(cov2)/np.sum(np.diag(cov2))  # cov2 is the covar. matrix of the corrected image.
+    print np.nansum(cov1)/np.sum(np.diag(cov1))  # cov1 is the covar. matrix of the uncorrected image.
+    %Out [2]:
+    0.300482626371
+    0.793176605206
+
+.. figure:: _static/img3.png
+   :alt: Decorrelated diffim
+
+   Decorrelated diffim
+
+*Figure 3. Decorrelated diffim.*
+--------------------------------
+
+*On the left is the decorrelated image difference. Original image
+difference is shown here for comparison, in the right-most panel, with
+the same intensity scale, as well as in* `Figure
 1 <#figure-1-image-differencing>`__.
+
+.. figure:: _static/img4.png
+   :alt: Decorrelated image statistics
+
+   Decorrelated image statistics
+
+*Figure 4. Decorrelated image statistics.*
+------------------------------------------
+
+*Histogram of sigma-clipped pixels in the original image difference
+(blue; 'orig') and the decorrelated image difference (red; 'corr') in*
+`Figure 3 <#figure-3-decorrelated-diffim>`__.
+
+|Covariance matrix 1| |Covariance matrix 2|
+
+*Figure 5. Covariance matrices.*
+--------------------------------
+
+*Covariance between neighboring pixels in the original, uncorrected
+image difference (left) and the decorrelated image difference (right)
+in* `Figure 3 <#figure-3-decorrelated-diffim>`__.
 
 Conclusions and future work
 ===========================
@@ -173,8 +242,18 @@ Appendix
 Appendix A. Implementation of basic Zackay et al. (2016) algorithm.
 -------------------------------------------------------------------
 
-Appendix B. Something else.
----------------------------
+Appendix B. Notebooks and code
+------------------------------
+
+All figures in this document and related code are from notebooks in `the
+diffimTests github
+repository <https://github.com/lsst-dm/diffimTests>`__, in particular,
+`this <https://github.com/djreiss/diffimTests/blob/master/14.%20Test%20Lupton(ZOGY)%20post%20convolution%20kernel%20on%20simulated%20(noisy)%202-D%20data%20with%20a%20variable%20source-updated.ipynb>`__
+and
+`this <https://github.com/djreiss/diffimTests/blob/master/13.%20compare%20L(ZOGY)%20and%20ZOGY%20diffims%20and%20PSFs.ipynb>`__
+one.
 
 .. |Matching kernel| image:: _static/img1.png
 .. |Correction kernel| image:: _static/img2.png
+.. |Covariance matrix 1| image:: _static/img5.png
+.. |Covariance matrix 2| image:: _static/img6.png
