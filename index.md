@@ -156,7 +156,24 @@ We have implemented tested the proposed decorrelation method in the LSST softwar
 
 *Image differencing on real (DECam) data.*
 
-For this image differencing, we use the standard [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) procedure with a spatially-varying PSF matching kernel. To perform image decorrelation in this case, we simply extract the matching kernel estimated for the center of the image ([Figure 8](#figure-8)), and compute the decorrelation kernel from that ([Figure 9](#figure-9)). Moreover, we use the input image variances measured as constants over the entire image (variance planes, in this case). The resulting decorrelated image difference has a greater variance (33.3 vs. 23.7), resulting in a smaller number of detections at the same (5.5-$\sigma$) detection threshold. Finally, we show in [Figure 10](#figure-10) that the decorrelated image indeed has a lower neighboring-pixel covariance (1.37% off-diagonal variance, vs. 11.9% for the uncorrected diffim).
+For this image differencing, we use the standard [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) procedure with a spatially-varying PSF matching kernel. To perform image decorrelation in this case, we simply extract the matching kernel estimated for the center of the image, and compute the decorrelation kernel from that ([Figure 8](#figure-8)). Moreover, we use the input image variances measured as constants over the entire image (sigma-clipped mean of their variance planes, in this case). The resulting decorrelated image difference has a greater variance (33.3 vs. 23.7), resulting in a smaller number of detections at the same (5.5-$\sigma$) detection threshold. Finally, we show in [Figure 9](#figure-9) that the decorrelated image indeed has a lower neighboring-pixel covariance (1.37% off-diagonal variance, vs. 11.9% for the uncorrected diffim).
+
+![](_static/img9.png)
+![](_static/img10.png)
+
+<a name="figure-8"/></a>
+
+###### *Figure 8.*
+
+*Image differencing on real (DECam) data. PSF matching kernels (left) and resulting decorrelation kernels (right).*
+
+![](_static/img11.png)
+
+<a name="figure-9"/></a>
+
+###### *Figure 9.*
+
+*Image differencing on real (DECam) data. Neighboring pixel covariance matrices for uncorrected (left) and corrected (right) image difference.*
 
 # 5. Conclusions and future work
 
@@ -165,6 +182,8 @@ For this image differencing, we use the standard [A&L](http://adsabs.harvard.edu
 Some info is going to go here.
 
 # 6. References
+
+Some references are going to go here. Perhaps.
 
 # 7. Appendix
 
