@@ -127,7 +127,7 @@ print np.nansum(cov1)/np.sum(np.diag(cov1))  # cov1 is the covar. matrix of the 
 
 ## 4.2. Comparison with Zackay, et al (2016).
 
-We developed a basic implementation of the [Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655) image differencing method in order to compare image differences (see [Appendex 7.A. for details](#a-appendix-a-implementation-of-basic-zackay-et-al-2016-algorithm)). Our implementation simply applies Equation (14) of their manuscript to the two simulated images, providing the (known) PSFs and variances as input:
+We developed a basic implementation of the [Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655) "proper" image differencing procedure in order to compare image differences (see [Appendex 7.A. for details](#a-appendix-a-implementation-of-basic-zackay-et-al-2016-algorithm)). Our implementation simply applies Equation (14) of their manuscript to the two simulated images, providing the (known) PSFs and variances as input:
 
 $$
 \widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2}},
@@ -135,7 +135,7 @@ $$
 
 ######Equation 2.
 
-where $D$ is the optimal difference image, $R$ and $N$ are the reference and "new" image, respectively, $P_r$ and $P_n$ are their PSFs, $F_r$ and $F_n$ are their flux-based zero-points (which we will set to one here), $\sigma_r^2$ and $\sigma_n^2$ are their variance, and $\widehat{D}$ denotes the FT of $D$.
+where $D$ is the proper difference image, $R$ and $N$ are the reference and "new" image, respectively, $P_r$ and $P_n$ are their PSFs, $F_r$ and $F_n$ are their flux-based zero-points (which we will set to one here), $\sigma_r^2$ and $\sigma_n^2$ are their variance, and $\widehat{D}$ denotes the FT of $D$.
 As shown in [Table 1](#table-1-image-difference-statistics), many of the bulk statistics between image differences derived via the two methods are (as expected) nearly identical. In fact, the two "optimal" image differences are nearly identical, as we show in [Figure 6](#figure-6-diffim-difference). The variance of the difference between the two difference images is of the order of 0.05% of the variances of the individual images.
 
 ![](_static/img7.png)
@@ -148,7 +148,7 @@ As shown in [Table 1](#table-1-image-difference-statistics), many of the bulk st
 
 ## 4.3. Application to real data.
 
-We have implemented tested the proposed decorrelation method in the LSST software stack, and applied it (as well as the [Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655) method) to real data obtained from DECam. In [Figure 7](#figure-7) we show subimages of the two input exposures, the PSF-matched image, and the image difference.
+We have implemented tested the proposed decorrelation method in the LSST software stack, and applied it to real data obtained from DECam. For this image differencing experiment, we use the standard [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) procedure with a spatially-varying PSF matching kernel. In [Figure 7](#figure-7) we show subimages of two astrometrically aligned input exposures, the PSF-matched template image, and the image difference.
 
 ![](_static/img8.png)
 
@@ -158,7 +158,7 @@ We have implemented tested the proposed decorrelation method in the LSST softwar
 
 *Image differencing on real (DECam) data. Subimages of the two input exposures (top), the PSF-matched image (bottom-left), and the image difference (bottom-right).*
 
-For this image differencing, we use the standard [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) procedure with a spatially-varying PSF matching kernel. To perform image decorrelation in this case, we simply extract the matching kernel estimated for the center of the image, and compute the decorrelation kernel from that ([Figure 8](#figure-8)). Moreover, we use the input image variances measured as constants over the entire image (sigma-clipped mean of their variance planes, in this case). The resulting decorrelated image difference has a greater variance (33.3 vs. 23.7), resulting in a smaller number of detections at the same (5.5-$\sigma$) detection threshold. Finally, we show in [Figure 9](#figure-9) that the decorrelated image indeed has a lower neighboring-pixel covariance (1.37% off-diagonal variance, vs. 11.9% for the uncorrected diffim).
+To perform image decorrelation in this case, we simply extracted the matching kernel $\kappa$ estimated for the center of the image, computed a constant image variance $\sigma_1^2$ and $\sigma_2^2$ over each entire image (sigma-clipped mean of its variance plane; in this example both equal 25.3), and computed the decorrelation kernel $\phi$ from those three quantities ([Figure 8](#figure-8)). The resulting decorrelated image difference has a greater variance (33.3 vs. 23.7, naive expected value 35.8), resulting in a smaller number of detections at the same (5.5-$\sigma$) detection threshold. Finally, we show in [Figure 9](#figure-9) that the decorrelated DECam image indeed has a lower neighboring-pixel covariance (1.37% off-diagonal variance, vs. 11.9% for the uncorrected diffim).
 
 ![](_static/img9.png)
 ![](_static/img10.png)
@@ -167,7 +167,7 @@ For this image differencing, we use the standard [A&L](http://adsabs.harvard.edu
 
 ###### *Figure 8.*
 
-*Image differencing on real (DECam) data. PSF matching kernels (left) and resulting decorrelation kernels (right).*
+*Image differencing on real (DECam) data. PSF matching kernels (left) and resulting decorrelation kernels (right). Kernels are shown for both Chebyshev and Polynomial spatial model types.*
 
 ![](_static/img11.png)
 
@@ -182,6 +182,8 @@ For this image differencing, we use the standard [A&L](http://adsabs.harvard.edu
 ## 5.1. Accounting for spatial variations in noise and matching kernel
 
 Some info is going to go here.
+
+## 5.2. Effects of diffim decorrelation on detection and measurement
 
 # 6. References
 
@@ -209,4 +211,4 @@ def performZackay(R, N, P_r, P_n, sig1, sig2):
 
 ### 7.B. Appendix B. Notebooks and code
 
-All figures in this document and related code are from notebooks in [the diffimTests github repository](https://github.com/lsst-dm/diffimTests), in particular, [this](https://github.com/djreiss/diffimTests/blob/master/14.%20Test%20Lupton(ZOGY)%20post%20convolution%20kernel%20on%20simulated%20(noisy)%202-D%20data%20with%20a%20variable%20source-updated.ipynb), [this](https://github.com/djreiss/diffimTests/blob/master/13.%20compare%20L(ZOGY)%20and%20ZOGY%20diffims%20and%20PSFs.ipynb), and [this](https://github.com/djreiss/diffimTests/blob/master/17.%20Do%20it%20in%20the%20stack%20with%20real%20data.ipynb) one.
+All figures in this document and related code are from notebooks in [the diffimTests github repository](https://github.com/lsst-dm/diffimTests), in particular, [this](https://github.com/lsst-dm/diffimTests/blob/master/14.%20Test%20Lupton(ZOGY)%20post%20convolution%20kernel%20on%20simulated%20(noisy)%202-D%20data%20with%20a%20variable%20source-updated.ipynb), [this](https://github.com/lsst-dm/diffimTests/blob/master/13.%20compare%20L(ZOGY)%20and%20ZOGY%20diffims%20and%20PSFs.ipynb), and [this](https://github.com/lsst-dm/diffimTests/blob/master/17.%20Do%20it%20in%20the%20stack%20with%20real%20data.ipynb) one.
