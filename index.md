@@ -158,7 +158,20 @@ We have implemented tested the proposed decorrelation method in the LSST softwar
 
 *Image differencing on real (DECam) data. Subimages of the two input exposures (top), the PSF-matched image (bottom-left), and the image difference (bottom-right).*
 
-To perform image decorrelation in this case, we simply extracted the matching kernel $\kappa$ estimated for the center of the image, computed a constant image variance $\sigma_1^2$ and $\sigma_2^2$ over each entire image (sigma-clipped mean of its variance plane; in this example both equal 25.3), and computed the decorrelation kernel $\phi$ from those three quantities ([Figure 8](#figure-8)). This computation may be turned on by setting the option `doDecorrelation=True` in the `imageDifference.py` command-line task in `pipe_tasks`. The decorrelation code itself resides in `ip_diffim`. The resulting decorrelated image difference has a greater variance (33.3 vs. 23.7, naive expected value 35.8), resulting in a smaller number of detections at the same (5.5-$\sigma$) detection threshold. Finally, we show in [Figure 9](#figure-9) that the decorrelated DECam image indeed has a lower neighboring-pixel covariance (1.37% off-diagonal variance, vs. 11.9% for the uncorrected diffim).
+To perform image decorrelation in this case, we simply extracted the matching kernel $\kappa$ estimated for the center of the image, computed a constant image variance $\sigma_1^2$ and $\sigma_2^2$ over each entire image (sigma-clipped mean of its variance plane; in this example both equal 25.3), and computed the decorrelation kernel $\phi$ from those three quantities ([Figure 8](#figure-8)). This computation may be turned on by setting the option `doDecorrelation=True` in the `imageDifference.py` command-line task in `pipe_tasks`. The decorrelation code itself resides in `ip_diffim`. The resulting decorrelated image difference has a greater variance (33.3 vs. 23.7, naive expected value 35.8), resulting in a smaller number of detections ($\sim 70\%$ fewer) at the same (5.5-$\sigma$) detection threshold (see [Table 2](#table-2)). Finally, we show in [Figure 9](#figure-9) that the decorrelated DECam image indeed has a lower neighboring-pixel covariance (1.37% off-diagonal variance, vs. 11.9% for the uncorrected diffim).
+
+<a name="table-2"/></a>
+
+| Decorrelation on?	| DetectThreshold	| Pos detected | Neg detected | Merged detected
+|-------------------|-------------------|--------------|--------------|----------------|
+| Yes |	5	| 43	| 20	| 52 |
+| Yes | 5.5	| 38	| 15	| 43 |
+| No	| 5	 | 89	| 328 |	395 |
+| No	| 5.5	| 58 |	98 |	143 |
+
+###### *Table 2.*
+
+*Comparison of numbers of sources detected in DECam image difference run with different decorrelation turned on and off, and with a 5.5-* $\sigma$ *or 5.0-* $\sigma$ *detection threshold.*
 
 ![](_static/img9.png)
 ![](_static/img10.png)

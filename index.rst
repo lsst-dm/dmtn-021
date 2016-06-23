@@ -358,11 +358,30 @@ option ``doDecorrelation=True`` in the ``imageDifference.py``
 command-line task in ``pipe_tasks``. The decorrelation code itself
 resides in ``ip_diffim``. The resulting decorrelated image difference
 has a greater variance (33.3 vs. 23.7, naive expected value 35.8),
-resulting in a smaller number of detections at the same
-(5.5-:math:`\sigma`) detection threshold. Finally, we show in `Figure
-9 <#figure-9>`__ that the decorrelated DECam image indeed has a lower
-neighboring-pixel covariance (1.37% off-diagonal variance, vs. 11.9% for
-the uncorrected diffim).
+resulting in a smaller number of detections (:math:`\sim 70\%` fewer) at
+the same (5.5-:math:`\sigma`) detection threshold (see `Table
+2 <#table-2>`__). Finally, we show in `Figure 9 <#figure-9>`__ that the
+decorrelated DECam image indeed has a lower neighboring-pixel covariance
+(1.37% off-diagonal variance, vs. 11.9% for the uncorrected diffim).
+
++---------------------+-------------------+----------------+----------------+-------------------+
+| Decorrelation on?   | DetectThreshold   | Pos detected   | Neg detected   | Merged detected   |
++=====================+===================+================+================+===================+
+| Yes                 | 5                 | 43             | 20             | 52                |
++---------------------+-------------------+----------------+----------------+-------------------+
+| Yes                 | 5.5               | 38             | 15             | 43                |
++---------------------+-------------------+----------------+----------------+-------------------+
+| No                  | 5                 | 89             | 328            | 395               |
++---------------------+-------------------+----------------+----------------+-------------------+
+| No                  | 5.5               | 58             | 98             | 143               |
++---------------------+-------------------+----------------+----------------+-------------------+
+
+*Table 2.*
+~~~~~~~~~~
+
+*Comparison of numbers of sources detected in DECam image difference run
+with different decorrelation turned on and off, and with a 5.5-*
+:math:`\sigma` *or 5.0-* :math:`\sigma` *detection threshold.*
 
 |image4| |image5|
 
