@@ -17,28 +17,32 @@ Herein, we describe ...
 The standard method for PSF matching for image subtraction in the LSST
 software stack is the method of `Alard & Lupton
 (1998) <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ (hereafter
-*A&L*). This algorithm learns a convolution kernel which, when convolved
-with the template image, matches the PSF of the template with that of
-the science image. Due to its use of linear basis functions to model the
-matching kernel, the method can cleanly incorporate spatially-varying
-PSFs (i.e., via a spatially-varying matching kernel), as well as a
-spatially-varying differential background. The algorithm has the
-advantage that it does not require measurement of the images' PSFs.
-Instead it only needs to model the differential (potentially
-spatially-varying) matching kernel in order to obtain an accurate
-subtraction.
+*A&L*) (also, `Alard,
+2000 <http://aas.aanda.org/articles/aas/pdf/2000/11/ds8706.pdf%5D>`__).
+This procedure is used to estimate a convolution kernel which, when
+convolved with the template image, matches the PSF of the template image
+with that of the science image, enabling a clean subtraction. Due to its
+use of linear basis functions to model the matching kernel, the method
+can flexibly incorporate spatially-varying PSFs (i.e., via a
+spatially-varying matching kernel), as well as a spatially-varying
+differential background. The algorithm has the advantage that it does
+not require measurement of the images' PSFs. Instead it only needs to
+model the differential (potentially spatially-varying) matching kernel
+in order to obtain an optimal subtraction.
 
-The `Alard & Lupton
-(1998) <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ method
+Image subtraction using the
+`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ method
 produces an optimal difference image in the case of a noise-less
 template. However, when the template is noisy (e.g., when the template
 is comprised of a small number of co-adds), then its convolution with
 the matching kernel leads to significant covariance of neighboring
 pixels within the subtracted image, which will affect detection and
 measurement if not accounted for (`Slater, et al.
-2016 <http://dmtn-006.lsst.io>`__). False detections in this case can be
-reduced by tracking the covariance matrix, or more *ad-hoc* (as is the
-current implementation) increasing the detection threshold.
+(2016) <http://dmtn-006.lsst.io>`__; `Price & Magnier
+(2004) <Pan-STARRS%20Image%20Processing%20Pipeline:%20PSF-Matching%20for%20Subtraction%20and%20Stacking>`__).
+False detections in this case can be reduced by tracking the covariance
+matrix, or more *ad-hoc* (as is the current implementation) increasing
+the detection threshold.
 
 While LSST will, over its ten-year span, collect dozens of observations
 per field and passband, at the onset of the survey, this number will be
@@ -54,11 +58,21 @@ will be more or less of an issue as the survey progresses.
 2. Proposal
 ===========
 
+The goal of PSF matching via
+`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ is to
+estimate the PSF matching kernel :math:`\kappa` that best matches the
+PSF of the two images being subtracted, :math:`I_1` and :math:`I_2`
+(typically :math:`I_2` is the template image, which is convolved with
+the PSF matching kernel :math:`\kappa`). The image difference :math:`D`
+is then :math:`D = I_1 - (\kappa \otimes I_2)`. As mentioned above, due
+to the convolution of :math:`I_2` with :math:`\kappa`, the noise in
+:math:`D` will be correlated.
+
 2.1. Difference image decorrelation.
 ------------------------------------
 
-An algorithm developed by `Kaiser,
-2001 <Addition%20of%20Images%20with%20Varying%20Seeing.%20PSDC-002-011-xx>`__
+An algorithm developed by `Kaiser
+(2001) <Addition%20of%20Images%20with%20Varying%20Seeing.%20PSDC-002-011-xx>`__
 and later rediscovered by `Zackay, et al
 (2015) <https://arxiv.org/abs/1512.06879>`__ showed that the noise in a
 PSF-matched coadd image can be decorrelated via noise whitening (i.e.
@@ -67,8 +81,7 @@ to image differencing (`Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__). In the case of
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ - based PSF
 matching, this results in an image difference in Fourier space
-:math:`\widehat{D}(k)` (where :math:`\widehat{x}(k)` denotes the Fourier
-transform of :math:`D`):
+:math:`\widehat{D}(k)`:
 
 .. math::
 
@@ -78,23 +91,22 @@ transform of :math:`D`):
 Equation 1.
 ~~~~~~~~~~~
 
-Here, :math:`I_1` and :math:`I_2` are the two images being subtracted
-(typically :math:`I_2` is the template image, which is convolved with
-the PSF matching kernel :math:`\kappa`). :math:`\sigma_1^2` and
-:math:`\sigma_2^2` are the variances of the two respective images. The
-term in the square-root of is a *post-subtraction convolution kernel*
+Here, :math:`\sigma_1^2` and :math:`\sigma_2^2` are the variances of
+images :math:`I_1` and :math:`I_2`, respectively. Thus, we may perform
+PSF matching to estimate :math:`\kappa` by standard methods (e.g.,
+`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ and related
+methods) and then correct for the noise in the template via `Eq.
+1 <#equation-1>`__. The term in the square-root of `Eq.
+1 <#equation-1>`__ is a *post-subtraction convolution kernel*
 :math:`\widehat{\phi}(k)`, which, when convolved with the image
 difference, has the effect of decorrelating the noise in the image
-difference. Thus, we may perform PSF matching to estimate :math:`\kappa`
-by standard methods (e.g.,
-`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ and related
-methods) and then correct for the noise in the template. This maintains
-the advantages described previously: the PSFs of :math:`I_1` and
-:math:`I_2` do not need to be measured, and spatial variations in PSFs
-may be readily accounted for (although see below). The decorrelation can
-be relatively inexpensive, as it requires (at least) one *FFT* of
-:math:`\kappa` and *iFFT* of :math:`\widehat{\phi}(k)` (which are both
-small, of the order 1,000 pixels), followed by one convolution.
+difference. This strategy maintains the advantages described previously:
+the PSFs of :math:`I_1` and :math:`I_2` do not need to be measured, and
+spatial variations in PSFs may be readily accounted for (although see
+below). The decorrelation can be relatively inexpensive, as it requires
+(at least) one *FFT* of :math:`\kappa` and *iFFT* of
+:math:`\widehat{\phi}(k)` (which are both small, of the order 1,000
+pixels), followed by one convolution.
 
 3. Implementation details
 =========================
@@ -102,15 +114,16 @@ small, of the order 1,000 pixels), followed by one convolution.
 Since the current implementation of
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ is performed
 in image space, we chose to implement the image decorrelation in image
-space as well. The image differencing is performed as usual to estimate
-:math:`\kappa` and compute the uncorrected image difference,
-:math:`I_1 - (\kappa \otimes I_2)`. The *post-subtraction convolution
-kernel* :math:`\widehat{\phi}(k)` is then computed in frequency space
-from :math:`\widehat{\kappa}(k)`, :math:`\sigma_1`, and
-:math:`\sigma_2`, and is then inverse Fourier-transformed to a kernel
-:math:`\phi` in real space. The image difference is then convolved with
-:math:`\phi` to obtain the decorrelated image difference,
-:math:`D(x) = \phi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]`.
+space as well. The *post-subtraction convolution kernel*
+:math:`\widehat{\phi}(k)` is then computed in frequency space from
+:math:`\widehat{\kappa}(k)`, :math:`\sigma_1`, and :math:`\sigma_2`, and
+is then inverse Fourier-transformed to a kernel :math:`\phi` in real
+space. The image difference is then convolved with :math:`\phi` to
+obtain the decorrelated image difference,
+:math:`D^\prime = \phi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]`.
+This also allows us to circumvent *FT*-ing the two exposures :math:`I_1`
+and :math:`I_2`, which could lead to artifacts due to masked and/or bad
+pixels.
 
 4. Results
 ==========
@@ -129,14 +142,6 @@ matching kernel). An example input template and science image, as well
 as PSF-matched template and resulting *diffim* is shown in `Figure
 1 <#figure-1-image-differencing>`__.
 
-In `Figure 2 <#figure-2-kernels>`__, we show the PSF matching kernel
-(:math:`\kappa`) that was estimated for the images shown in `Figure
-1 <#figure-1-image-differencing>`__, and the resulting decorrelation
-kernel, :math:`\phi`. We note that :math:`\phi` largely has the
-structure of a delta function, with a small region of negative signal,
-thus its capability, when convolved with the difference image, to act as
-an effective "sharpening" kernel.
-
 .. figure:: _static/img0.png
    :alt: 
 
@@ -147,6 +152,14 @@ an effective "sharpening" kernel.
 template, science image, and difference image. In this simulated
 example, the source near the center was set to increase in flux by 2%
 between the science and template "exposures."*
+
+In `Figure 2 <#figure-2-kernels>`__, we show the PSF matching kernel
+(:math:`\kappa`) that was estimated for the images shown in `Figure
+1 <#figure-1-image-differencing>`__, and the resulting decorrelation
+kernel, :math:`\phi`. We note that :math:`\phi` largely has the
+structure of a delta function, with a small region of negative signal,
+thus its capability, when convolved with the difference image, to act as
+an effective "sharpening" kernel.
 
 |Matching kernel| |Correction kernel|
 
@@ -244,10 +257,10 @@ algorithm.
 *Figure 3. Decorrelated diffim.*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*On the left is the decorrelated image difference. Original image
-difference is shown here for comparison, in the right-most panel, with
-the same intensity scale, as well as in* `Figure
-1 <#figure-1-image-differencing>`__.
+*On the left is the decorrelated image difference,* :math:`D^\prime`.
+*Original image difference* :math:`D` *is shown here for comparison, in
+the right-most panel, with the same intensity scale, as well as in*
+`Figure 1 <#figure-1-image-differencing>`__.
 
 .. figure:: _static/img4.png
    :alt: 
@@ -255,9 +268,10 @@ the same intensity scale, as well as in* `Figure
 *Figure 4. Decorrelated image statistics.*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*Histogram of sigma-clipped pixels in the original image difference
-(blue; 'orig') and the decorrelated image difference (red; 'corr') in*
-`Figure 3 <#figure-3-decorrelated-diffim>`__.
+*Histogram of sigma-clipped pixels in the original image difference*
+:math:`D` *(blue; 'orig') and the decorrelated image difference*
+:math:`D^\prime` *(red; 'corr') in* `Figure
+3 <#figure-3-decorrelated-diffim>`__.
 
 |Covariance matrix 1| |Covariance matrix 2|
 
@@ -265,27 +279,30 @@ the same intensity scale, as well as in* `Figure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 *Covariance between neighboring pixels in the original, uncorrected
-image difference (left) and the decorrelated image difference (right)
-in* `Figure 3 <#figure-3-decorrelated-diffim>`__.
+image difference* :math:`D` *(left) and the decorrelated image
+difference* :math:`D^\prime` *(right) in* `Figure
+3 <#figure-3-decorrelated-diffim>`__.
 
 4.2. Comparison with Zackay, et al (2016).
 ------------------------------------------
 
 We developed a basic implementation of the `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ image differencing method
-in order to compare image differences. Our implementation simply applies
-Equation (14) of their manuscript to the two simulated images, providing
-the (known) PSFs and variances as input:
+(2016) <https://arxiv.org/abs/1601.02655>`__ "proper" image differencing
+procedure in order to compare image differences (see `Appendex 7.A. for
+details <#a-appendix-a-implementation-of-basic-zackay-et-al-2016-algorithm>`__).
+Our implementation simply applies Equation (14) of their manuscript to
+the two simulated images, providing the (known) PSFs and variances as
+input:
 
 .. math::
 
 
-   \widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 |\widehat{P_r}|^2 + \sigma_r^2 F_n^2 |\widehat{P_n}|^2}},
+   \widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2}},
 
 Equation 2.
 ~~~~~~~~~~~
 
-where :math:`D` is the optimal difference image, :math:`R` and :math:`N`
+where :math:`D` is the proper difference image, :math:`R` and :math:`N`
 are the reference and "new" image, respectively, :math:`P_r` and
 :math:`P_n` are their PSFs, :math:`F_r` and :math:`F_n` are their
 flux-based zero-points (which we will set to one here),
@@ -305,19 +322,20 @@ variances of the individual images.
 *Figure 6. Diffim difference.*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*Histogram of pixel-wise difference between image differences. Each
-image difference has been rescaled to unit variance to facilitate
+*Histogram of pixel-wise difference between optimal image differences.
+Each image difference has been rescaled to unit variance to facilitate
 differencing.*
 
 4.3. Application to real data.
 ------------------------------
 
 We have implemented tested the proposed decorrelation method in the LSST
-software stack, and applied it (as well as the `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ method) to real data
-obtained from DECam. In `Figure 7 <#figure-7>`__ we show subimages of
-the two input exposures, the PSF-matched image, and the image
-difference.
+software stack, and applied it to real data obtained from DECam. For
+this image differencing experiment, we used the standard
+`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ procedure
+with a spatially-varying PSF matching kernel. In `Figure
+7 <#figure-7>`__ we show subimages of two astrometrically aligned input
+exposures, the PSF-matched template image, and the image difference.
 
 .. figure:: _static/img8.png
    :alt: 
@@ -325,21 +343,26 @@ difference.
 *Figure 7.*
 ~~~~~~~~~~~
 
-*Image differencing on real (DECam) data.*
+*Image differencing on real (DECam) data. Subimages of the two input
+exposures (top), the PSF-matched image (bottom-left), and the image
+difference (bottom-right).*
 
-For this image differencing, we use the standard
-`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ procedure
-with a spatially-varying PSF matching kernel. To perform image
-decorrelation in this case, we simply extract the matching kernel
-estimated for the center of the image, and compute the decorrelation
-kernel from that (`Figure 8 <#figure-8>`__). Moreover, we use the input
-image variances measured as constants over the entire image (variance
-planes, in this case). The resulting decorrelated image difference has a
-greater variance (33.3 vs. 23.7), resulting in a smaller number of
-detections at the same (5.5-:math:`\sigma`) detection threshold.
-Finally, we show in `Figure 9 <#figure-9>`__ that the decorrelated image
-indeed has a lower neighboring-pixel covariance (1.37% off-diagonal
-variance, vs. 11.9% for the uncorrected diffim).
+To perform image decorrelation in this case, we simply extracted the
+matching kernel :math:`\kappa` estimated for the center of the image,
+computed a constant image variance :math:`\sigma_1^2` and
+:math:`\sigma_2^2` over each entire image (sigma-clipped mean of its
+variance plane; in this example both equal 25.3), and computed the
+decorrelation kernel :math:`\phi` from those three quantities (`Figure
+8 <#figure-8>`__). This computation may be turned on by setting the
+option ``doDecorrelation=True`` in the ``imageDifference.py``
+command-line task in ``pipe_tasks``. The decorrelation code itself
+resides in ``ip_diffim``. The resulting decorrelated image difference
+has a greater variance (33.3 vs. 23.7, naive expected value 35.8),
+resulting in a smaller number of detections at the same
+(5.5-:math:`\sigma`) detection threshold. Finally, we show in `Figure
+9 <#figure-9>`__ that the decorrelated DECam image indeed has a lower
+neighboring-pixel covariance (1.37% off-diagonal variance, vs. 11.9% for
+the uncorrected diffim).
 
 |image4| |image5|
 
@@ -347,7 +370,8 @@ variance, vs. 11.9% for the uncorrected diffim).
 ~~~~~~~~~~~
 
 *Image differencing on real (DECam) data. PSF matching kernels (left)
-and resulting decorrelation kernels (right).*
+and resulting decorrelation kernels (right). Kernels are shown for both
+Chebyshev and Polynomial spatial model types.*
 
 .. figure:: _static/img11.png
    :alt: 
@@ -360,6 +384,13 @@ matrices for uncorrected (left) and corrected (right) image difference.*
 
 5. Conclusions and future work
 ==============================
+
+Some conclusions are going to go here.
+
+5.2. Effects of diffim decorrelation on detection and measurement
+-----------------------------------------------------------------
+
+Some info is going to go here.
 
 5.1. Accounting for spatial variations in noise and matching kernel
 -------------------------------------------------------------------
@@ -399,10 +430,10 @@ Some references are going to go here. Perhaps.
 All figures in this document and related code are from notebooks in `the
 diffimTests github
 repository <https://github.com/lsst-dm/diffimTests>`__, in particular,
-`this <https://github.com/djreiss/diffimTests/blob/master/14.%20Test%20Lupton(ZOGY)%20post%20convolution%20kernel%20on%20simulated%20(noisy)%202-D%20data%20with%20a%20variable%20source-updated.ipynb>`__,
-`this <https://github.com/djreiss/diffimTests/blob/master/13.%20compare%20L(ZOGY)%20and%20ZOGY%20diffims%20and%20PSFs.ipynb>`__,
+`this <https://github.com/lsst-dm/diffimTests/blob/master/14.%20Test%20Lupton(ZOGY)%20post%20convolution%20kernel%20on%20simulated%20(noisy)%202-D%20data%20with%20a%20variable%20source-updated.ipynb>`__,
+`this <https://github.com/lsst-dm/diffimTests/blob/master/13.%20compare%20L(ZOGY)%20and%20ZOGY%20diffims%20and%20PSFs.ipynb>`__,
 and
-`this <https://github.com/djreiss/diffimTests/blob/master/17.%20Do%20it%20in%20the%20stack%20with%20real%20data.ipynb>`__
+`this <https://github.com/lsst-dm/diffimTests/blob/master/17.%20Do%20it%20in%20the%20stack%20with%20real%20data.ipynb>`__
 one.
 
 .. |Matching kernel| image:: _static/img1.png
