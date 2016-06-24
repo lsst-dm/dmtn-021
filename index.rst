@@ -18,7 +18,7 @@ The standard method for PSF matching for image subtraction in the LSST
 software stack is the method of `Alard & Lupton
 (1998) <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ (hereafter
 *A&L*) (also, `Alard,
-2000 <http://aas.aanda.org/articles/aas/pdf/2000/11/ds8706.pdf%5D>`__).
+2000 <http://aas.aanda.org/articles/aas/pdf/2000/11/ds8706.pdf]>`__).
 This procedure is used to estimate a convolution kernel which, when
 convolved with the template image, matches the PSF of the template image
 with that of the science image, enabling a clean subtraction. Due to its
@@ -33,7 +33,7 @@ in order to obtain an optimal subtraction.
 Image subtraction using the
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ method
 produces an optimal difference image in the case of a noise-less
-template. However, when the template is noisy (e.g., when the template
+template. However, when the template is noisy (*e.g.*, when the template
 is comprised of a small number of co-adds), then its convolution with
 the matching kernel leads to significant covariance of neighboring
 pixels within the subtracted image, which will affect detection and
@@ -49,7 +49,7 @@ per field and passband, at the onset of the survey, this number will be
 small enough that this issue of noisy templates will be important.
 Moreover, if we inted to bin templates by airmass to account for
 differential chromatic refraction (DCR), then the total number of coadds
-contributing to each template will by necessity be smaller. Finally,
+contributing to each template will necesserily be smaller. Finally,
 depending upon the flavor of coadd (`Bosch,
 2016 <http://dmtn-015.lsst.io>`__) used to construct the template,
 template noise and the resulting covariances in the image difference
@@ -65,8 +65,8 @@ PSF of the two images being subtracted, :math:`I_1` and :math:`I_2`
 (typically :math:`I_2` is the template image, which is convolved with
 the PSF matching kernel :math:`\kappa`). The image difference :math:`D`
 is then :math:`D = I_1 - (\kappa \otimes I_2)`. As mentioned above, due
-to the convolution of :math:`I_2` with :math:`\kappa`, the noise in
-:math:`D` will be correlated.
+to the convolution (:math:`\kappa  \otimes I_2`), the noise in :math:`D`
+will be correlated.
 
 2.1. Difference image decorrelation.
 ------------------------------------
@@ -89,7 +89,7 @@ matching, this results in an image difference in Fourier space
    \widehat{D}(k) = \big[ \widehat{I}_1(k) - \widehat{\kappa}(k) \widehat{I}_2(k) \big] \sqrt{ \frac{ \sigma_1^2 + \sigma_2^2}{ \sigma_1^2 + \widehat{\kappa}^2(k) \sigma_2^2}}
 
 Equation 1.
-~~~~~~~~~~~
+           
 
 Here, :math:`\sigma_1^2` and :math:`\sigma_2^2` are the variances of
 images :math:`I_1` and :math:`I_2`, respectively. Thus, we may perform
@@ -100,13 +100,17 @@ methods) and then correct for the noise in the template via `Eq.
 1 <#equation-1>`__ is a *post-subtraction convolution kernel*
 :math:`\widehat{\phi}(k)`, which, when convolved with the image
 difference, has the effect of decorrelating the noise in the image
-difference. This strategy maintains the advantages described previously:
-the PSFs of :math:`I_1` and :math:`I_2` do not need to be measured, and
-spatial variations in PSFs may be readily accounted for (although see
-below). The decorrelation can be relatively inexpensive, as it requires
-(at least) one *FFT* of :math:`\kappa` and *iFFT* of
-:math:`\widehat{\phi}(k)` (which are both small, of the order 1,000
-pixels), followed by one convolution.
+difference. It also (explicitly) contains an extra factor of
+:math:`\sqrt{\sigma_1^2+\sigma_2^2}`, which sets the overall adjusted
+variance of the noise of the image difference (rather than the unit
+variance set vy the Zackat et al. algorithm). This strategy maintains
+the advantages described previously: the PSFs of :math:`I_1` and
+:math:`I_2` do not need to be measured, and spatial variations in PSFs
+may be readily accounted for (although see below). The decorrelation can
+be relatively inexpensive, as it requires (at least) one *FFT* of
+:math:`\kappa` and *iFFT* of :math:`\widehat{\phi}(k)` (which are both
+small, of the order 1,000 pixels), followed by one convolution of the
+difference image.
 
 3. Implementation details
 =========================
@@ -146,7 +150,7 @@ as PSF-matched template and resulting *diffim* is shown in `Figure
    :alt: 
 
 *Figure 1. Image differencing.*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                               
 
 *From left to right, sample (simulated) template image, PSF-matched
 template, science image, and difference image. In this simulated
@@ -164,7 +168,7 @@ an effective "sharpening" kernel.
 |Matching kernel| |Correction kernel|
 
 *Figure 2. Kernels.*
-~~~~~~~~~~~~~~~~~~~~
+                    
 
 *Sample PSF matching kernel* :math:`\kappa` *(left) and resulting
 decorrelation kernel,* :math:`\phi` *for the images shown in* `Figure
@@ -200,7 +204,7 @@ expected level:
 +-------------------------+---------------------+--------------+
 
 *Table 1. Image difference statistics.*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                       
 
 *Variances and neighbor-pixel covariances for image differences derived
 from two images each with input variances of 0.2.* :math:`^*` *Note that
@@ -255,7 +259,7 @@ algorithm.
    :alt: 
 
 *Figure 3. Decorrelated diffim.*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                
 
 *On the left is the decorrelated image difference,* :math:`D^\prime`.
 *Original image difference* :math:`D` *is shown here for comparison, in
@@ -266,7 +270,7 @@ the right-most panel, with the same intensity scale, as well as in*
    :alt: 
 
 *Figure 4. Decorrelated image statistics.*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                          
 
 *Histogram of sigma-clipped pixels in the original image difference*
 :math:`D` *(blue; 'orig') and the decorrelated image difference*
@@ -276,7 +280,7 @@ the right-most panel, with the same intensity scale, as well as in*
 |Covariance matrix 1| |Covariance matrix 2|
 
 *Figure 5. Covariance matrices.*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                
 
 *Covariance between neighboring pixels in the original, uncorrected
 image difference* :math:`D` *(left) and the decorrelated image
@@ -300,7 +304,7 @@ input:
    \widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2}},
 
 Equation 2.
-~~~~~~~~~~~
+           
 
 where :math:`D` is the proper difference image, :math:`R` and :math:`N`
 are the reference and "new" image, respectively, :math:`P_r` and
@@ -320,7 +324,7 @@ variances of the individual images.
    :alt: 
 
 *Figure 6. Diffim difference.*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                              
 
 *Histogram of pixel-wise difference between optimal image differences.
 Each image difference has been rescaled to unit variance to facilitate
@@ -341,7 +345,7 @@ exposures, the PSF-matched template image, and the image difference.
    :alt: 
 
 *Figure 7.*
-~~~~~~~~~~~
+           
 
 *Image differencing on real (DECam) data. Subimages of the two input
 exposures (top), the PSF-matched image (bottom-left), and the image
@@ -368,7 +372,7 @@ diffim).
 |image4| |image5|
 
 *Figure 8.*
-~~~~~~~~~~~
+           
 
 *Image differencing on real (DECam) data. PSF matching kernels (left)
 and resulting decorrelation kernels (right). Kernels are shown for both
@@ -378,7 +382,7 @@ Chebyshev and Polynomial spatial model types.*
    :alt: 
 
 *Figure 9.*
-~~~~~~~~~~~
+           
 
 *Image differencing on real (DECam) data. Neighboring pixel covariance
 matrices for uncorrected (left) and corrected (right) image difference.*
@@ -396,7 +400,7 @@ matrices for uncorrected (left) and corrected (right) image difference.*
 +---------------------+-------------------+----------------+----------------+-------------------+
 
 *Table 2.*
-~~~~~~~~~~
+          
 
 *Comparison of numbers of* ``diaSources`` *detected in DECam image
 difference run with decorrelation turned on or off, and with a 5.5-*
@@ -426,7 +430,7 @@ Some references are going to go here. Perhaps.
 ===========
 
 7.A. Appendix A. Implementation of basic Zackay et al. (2016) algorithm.
-------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code:: python
 
@@ -445,7 +449,7 @@ Some references are going to go here. Perhaps.
         return D
 
 7.B. Appendix B. Notebooks and code
------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 All figures in this document and related code are from notebooks in `the
 diffimTests github
