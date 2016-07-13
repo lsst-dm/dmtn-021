@@ -381,6 +381,12 @@ variation in the matching kernels (pixel coordinates overlaid).*
 .. figure:: _static/img11.png
    :alt: 
 
+*Figure 9.*
+~~~~~~~~~~~
+
+*Image differencing on real (DECam) data. Neighboring pixel covariance
+matrices for uncorrected (left) and corrected (right) image difference.*
+
 4.4. Effects of diffim decorrelation on detection and measurement
 -----------------------------------------------------------------
 
@@ -398,12 +404,6 @@ does for the uncorrected image difference (which is why the standard
 5.5-\ :math:`\sigma` until now). Also of note, 45 of the 47
 ``diaSources`` detected in the decorrelated image are also detected in
 the uncorrected image difference.
-
-*Figure 9.*
-~~~~~~~~~~~
-
-*Image differencing on real (DECam) data. Neighboring pixel covariance
-matrices for uncorrected (left) and corrected (right) image difference.*
 
 +------------------+------------------+--------------+--------------+----------------+
 | Decorrelated?    | Detection        | Positive     | Negative     | Merged         |

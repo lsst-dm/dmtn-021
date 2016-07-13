@@ -171,17 +171,18 @@ To perform image decorrelation in this case, we simply extracted the matching ke
 
 ![](_static/img11.png)
 
-## 4.4. Effects of diffim decorrelation on detection and measurement
-
-See [this notebook](https://github.com/lsst-dm/diffimTests/blob/master/20.%20compare%20photometry.ipynb).
-
-The higher variance of the decorrelated image difference results in a smaller number of `diaSource` detections ($\sim$ 70% fewer) at the same (5.5-$\sigma$) detection threshold ([Table 2](#table-2)). Notably, the detection count does not increase significantly for the decorrelated image difference when the detection threshold is set to the canonical 5.0-$\sigma$ level, whereas it does for the uncorrected image difference (which is why the standard `diaSource` detection threshold has typically been set to 5.5-$\sigma$ until now). Also of note, 45 of the 47 `diaSources` detected in the decorrelated image are also detected in the uncorrected image difference.
-
 <a name="figure-9"/></a>
 
 ###### *Figure 9.*
 
 *Image differencing on real (DECam) data. Neighboring pixel covariance matrices for uncorrected (left) and corrected (right) image difference.*
+
+
+## 4.4. Effects of diffim decorrelation on detection and measurement
+
+See [this notebook](https://github.com/lsst-dm/diffimTests/blob/master/20.%20compare%20photometry.ipynb).
+
+The higher variance of the decorrelated image difference results in a smaller number of `diaSource` detections ($\sim$ 70% fewer) at the same (5.5-$\sigma$) detection threshold ([Table 2](#table-2)). Notably, the detection count does not increase significantly for the decorrelated image difference when the detection threshold is set to the canonical 5.0-$\sigma$ level, whereas it does for the uncorrected image difference (which is why the standard `diaSource` detection threshold has typically been set to 5.5-$\sigma$ until now). Also of note, 45 of the 47 `diaSources` detected in the decorrelated image are also detected in the uncorrected image difference.
 
 <a name="table-2"/></a>
 
