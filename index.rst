@@ -397,13 +397,14 @@ The higher variance of the decorrelated image difference results in a
 smaller number of ``diaSource`` detections (:math:`\sim` 70% fewer) at
 the same (5.5-:math:`\sigma`) detection threshold (`Table
 2 <#table-2>`__). Notably, the detection count does not increase
-significantly for the decorrelated image difference when the detection
-threshold is set to the canonical 5.0-\ :math:`\sigma` level, whereas it
-does for the uncorrected image difference (which is why the standard
-``diaSource`` detection threshold has typically been set to
-5.5-\ :math:`\sigma` until now). Also of note, 45 of the 47
-``diaSources`` detected in the decorrelated image are also detected in
-the uncorrected image difference.
+substantially (:math:`\sim 14\%`) for the decorrelated image difference
+when the detection threshold is set to the canonical
+5.0-\ :math:`\sigma` level, whereas it does (:math:`\sim 176\%`) for the
+uncorrected image difference (which is why the standard ``diaSource``
+detection threshold has typically been set to 5.5-\ :math:`\sigma` until
+now). Also of note, 45 of the 47 ``diaSources`` detected in the
+decorrelated image are also detected in the uncorrected image
+difference.
 
 +------------------+------------------+--------------+--------------+----------------+
 | Decorrelated?    | Detection        | Positive     | Negative     | Merged         |
