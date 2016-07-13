@@ -363,20 +363,10 @@ variance plane; in this example 60.0 and 62.8 for the template and
 science images, respectively), and computed the decorrelation kernel
 :math:`\phi` from those three quantities (`Figure 8 <#figure-8>`__). The
 resulting decorrelated image difference has a greater variance (125.5
-vs. 66.8, naive expected value :math:`60.0+62.8=122.8`), resulting in a
-smaller number of ``diaSource`` detections (:math:`\sim` 70% fewer) at
-the same (5.5-:math:`\sigma`) detection threshold (see `Table
-2 <#table-2>`__). Notably, the detection count does not increase
-significantly for the decorrelated image difference when the detection
-threshold is set to the canonical 5.0-\ :math:`\sigma` level, whereas it
-does for the uncorrected image difference (which is why the standard
-``diaSource`` detection threshold has typically been set to
-5.5-\ :math:`\sigma` until now). Also of note, 45 of the 47
-``diaSources`` detected in the decorrelated image are also detected in
-the uncorrected image difference. Finally, we show in `Figure
-9 <#figure-9>`__ that the decorrelated DECam image indeed has a lower
-neighboring-pixel covariance (4.39% off-diagonal variance, vs. 34.9% for
-the uncorrected diffim).
+vs. 66.8, naive expected value :math:`60.0+62.8=122.8`). Additionally,
+we show in `Figure 9 <#figure-9>`__ that the decorrelated DECam image
+indeed has a lower neighboring-pixel covariance (4.39% off-diagonal
+variance, vs. 34.9% for the uncorrected diffim).
 
 |image4| |image5|
 
@@ -391,6 +381,24 @@ variation in the matching kernels (pixel coordinates overlaid).*
 .. figure:: _static/img11.png
    :alt: 
 
+4.4. Effects of diffim decorrelation on detection and measurement
+-----------------------------------------------------------------
+
+See `this
+notebook <https://github.com/lsst-dm/diffimTests/blob/master/20.%20compare%20photometry.ipynb>`__.
+
+The higher variance of the decorrelated image difference results in a
+smaller number of ``diaSource`` detections (:math:`\sim` 70% fewer) at
+the same (5.5-:math:`\sigma`) detection threshold (`Table
+2 <#table-2>`__). Notably, the detection count does not increase
+significantly for the decorrelated image difference when the detection
+threshold is set to the canonical 5.0-\ :math:`\sigma` level, whereas it
+does for the uncorrected image difference (which is why the standard
+``diaSource`` detection threshold has typically been set to
+5.5-\ :math:`\sigma` until now). Also of note, 45 of the 47
+``diaSources`` detected in the decorrelated image are also detected in
+the uncorrected image difference.
+
 *Figure 9.*
 ~~~~~~~~~~~
 
@@ -398,7 +406,7 @@ variation in the matching kernels (pixel coordinates overlaid).*
 matrices for uncorrected (left) and corrected (right) image difference.*
 
 +------------------+------------------+--------------+--------------+----------------+
-| Decorrelation?   | Detection        | Positive     | Negative     | Merged         |
+| Decorrelated?    | Detection        | Positive     | Negative     | Merged         |
 |                  | threshold        | detected     | detected     | detected       |
 +==================+==================+==============+==============+================+
 | Yes              | 5.0              | 40           | 18           | 47             |
@@ -456,12 +464,6 @@ standard deviation).
 This result suggests that we need to compute :math:`\phi` on a grid
 across the image, and (ideally) perform an interpolation to estimate a
 spatially-varying :math:`\phi(x,y)`.
-
-5.2. Effects of diffim decorrelation on detection and measurement
------------------------------------------------------------------
-
-See `this
-notebook <https://github.com/lsst-dm/diffimTests/blob/master/20.%20compare%20photometry.ipynb>`__.
 
 6. Appendix
 ===========

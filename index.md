@@ -158,7 +158,7 @@ We have implemented tested the proposed decorrelation method in the LSST softwar
 
 *Image differencing on real (DECam) data. Subimages of the two input exposures (top), the PSF-matched image (bottom-left), and the image difference (bottom-right).*
 
-To perform image decorrelation in this case, we simply extracted the matching kernel $\kappa$ estimated for the center of the image, computed a constant image variance $\sigma_1^2$ and $\sigma_2^2$ over each entire image (sigma-clipped mean of its variance plane; in this example 60.0 and 62.8 for the template and science images, respectively), and computed the decorrelation kernel $\phi$ from those three quantities ([Figure 8](#figure-8)). The resulting decorrelated image difference has a greater variance (125.5 vs. 66.8, naive expected value $60.0+62.8=122.8$), resulting in a smaller number of `diaSource` detections ($\sim$ 70% fewer) at the same (5.5-$\sigma$) detection threshold (see [Table 2](#table-2)). Notably, the detection count does not increase significantly for the decorrelated image difference when the detection threshold is set to the canonical 5.0-$\sigma$ level, whereas it does for the uncorrected image difference (which is why the standard `diaSource` detection threshold has typically been set to 5.5-$\sigma$ until now). Also of note, 45 of the 47 `diaSources` detected in the decorrelated image are also detected in the uncorrected image difference. Finally, we show in [Figure 9](#figure-9) that the decorrelated DECam image indeed has a lower neighboring-pixel covariance (4.39% off-diagonal variance, vs. 34.9% for the uncorrected diffim).
+To perform image decorrelation in this case, we simply extracted the matching kernel $\kappa$ estimated for the center of the image, computed a constant image variance $\sigma_1^2$ and $\sigma_2^2$ over each entire image (sigma-clipped mean of its variance plane; in this example 60.0 and 62.8 for the template and science images, respectively), and computed the decorrelation kernel $\phi$ from those three quantities ([Figure 8](#figure-8)). The resulting decorrelated image difference has a greater variance (125.5 vs. 66.8, naive expected value $60.0+62.8=122.8$). Additionally, we show in [Figure 9](#figure-9) that the decorrelated DECam image indeed has a lower neighboring-pixel covariance (4.39% off-diagonal variance, vs. 34.9% for the uncorrected diffim).
 
 ![](_static/img9.png)
 ![](_static/img10.png)
@@ -171,6 +171,12 @@ To perform image decorrelation in this case, we simply extracted the matching ke
 
 ![](_static/img11.png)
 
+## 4.4. Effects of diffim decorrelation on detection and measurement
+
+See [this notebook](https://github.com/lsst-dm/diffimTests/blob/master/20.%20compare%20photometry.ipynb).
+
+The higher variance of the decorrelated image difference results in a smaller number of `diaSource` detections ($\sim$ 70% fewer) at the same (5.5-$\sigma$) detection threshold ([Table 2](#table-2)). Notably, the detection count does not increase significantly for the decorrelated image difference when the detection threshold is set to the canonical 5.0-$\sigma$ level, whereas it does for the uncorrected image difference (which is why the standard `diaSource` detection threshold has typically been set to 5.5-$\sigma$ until now). Also of note, 45 of the 47 `diaSources` detected in the decorrelated image are also detected in the uncorrected image difference.
+
 <a name="figure-9"/></a>
 
 ###### *Figure 9.*
@@ -179,7 +185,7 @@ To perform image decorrelation in this case, we simply extracted the matching ke
 
 <a name="table-2"/></a>
 
-| Decorrelation?	| Detection threshold	| Positive detected | Negative detected | Merged detected
+| Decorrelated?	| Detection threshold	| Positive detected | Negative detected | Merged detected
 |-------------------|-------------------|--------------|--------------|----------------|
 | Yes | 5.0	| 40	| 18	| 47 |
 | Yes | 5.5	| 35	| 15	| 41 |
@@ -201,10 +207,6 @@ There are likely to be spatial variations across an image of the PSF matching ke
 We explored the effect of spatial variations in all three of these parameters for a single example DECam image subtraction. The PSF matching kernel for this image varies across the image ([Figure 8](#figure-8)), and thus so does the resulting decorrelation kernel, $\phi$. Additionally, the noise (quantified in the variance planes of the two exposures) varies across both the template and science images by $\sim 1\%$ (data not shown here, but see [this IPython notebook](https://github.com/lsst-dm/diffimTests/blob/master/19.%20check%20variance%20planes.ipynb)). We computed decorrelation kernels $\phi_i$ for the observed extremes of each of these three parameters, and compared the resulting decorrelated image differences to the canonical decorrelated image difference computed using $\phi$ computed for the center of the images. The distribution of variances (sigma-clipped means of the variance plane) of the resulting decorrelated image differences differed by as much as $\sim 6.0\%$ at the extreme ($\sim 1.5\%$ standard deviation).
 
 This result suggests that we need to compute $\phi$ on a grid across the image, and (ideally) perform an interpolation to estimate a spatially-varying $\phi(x,y)$.
-
-## 5.2. Effects of diffim decorrelation on detection and measurement
-
-See [this notebook](https://github.com/lsst-dm/diffimTests/blob/master/20.%20compare%20photometry.ipynb).
 
 # 6. Appendix
 
