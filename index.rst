@@ -397,17 +397,18 @@ variation in the matching kernels (pixel coordinates overlaid).*
 *Image differencing on real (DECam) data. Neighboring pixel covariance
 matrices for uncorrected (left) and corrected (right) image difference.*
 
-+---------------------+-------------------+----------------+----------------+-------------------+
-| Decorrelation on?   | DetectThreshold   | Pos detected   | Neg detected   | Merged detected   |
-+=====================+===================+================+================+===================+
-| Yes                 | 5.0               | 40             | 18             | 47                |
-+---------------------+-------------------+----------------+----------------+-------------------+
-| Yes                 | 5.5               | 35             | 15             | 41                |
-+---------------------+-------------------+----------------+----------------+-------------------+
-| No                  | 5.0               | 89             | 328            | 395               |
-+---------------------+-------------------+----------------+----------------+-------------------+
-| No                  | 5.5               | 58             | 98             | 143               |
-+---------------------+-------------------+----------------+----------------+-------------------+
++------------------+------------------+--------------+--------------+----------------+
+| Decorrelation?   | Detection        | Positive     | Negative     | Merged         |
+|                  | threshold        | detected     | detected     | detected       |
++==================+==================+==============+==============+================+
+| Yes              | 5.0              | 40           | 18           | 47             |
++------------------+------------------+--------------+--------------+----------------+
+| Yes              | 5.5              | 35           | 15           | 41             |
++------------------+------------------+--------------+--------------+----------------+
+| No               | 5.0              | 89           | 328          | 395            |
++------------------+------------------+--------------+--------------+----------------+
+| No               | 5.5              | 58           | 98           | 143            |
++------------------+------------------+--------------+--------------+----------------+
 
 *Table 2.*
 ~~~~~~~~~~
@@ -421,38 +422,52 @@ difference run with decorrelation turned on or off, and with a 5.5-*
 
 Some conclusions are going to go here.
 
+5.1. Accounting for spatial variations in noise (variance) and matching kernel
+------------------------------------------------------------------------------
+
+There are likely to be spatial variations across an image of the PSF
+matching kernel and the template- and science-image variances. These
+three parameters separately could contribute to spatial variations in
+the decorrelation kernel :math:`\phi`, with unknown effects. (A primary
+effect is that, if these parameters are computed just for the center of
+the images and then the resulting :math:`\phi` is only accurate for the
+center of the image, and could lead to over/under-correction of the
+correlated noise nearer to the edges of the image difference. Another
+effect is that the resulting image difference PSF will also not include
+the accurate spatial variations.)
+
+We explored the effect of spatial variations in all three of these
+parameters for a single example DECam image subtraction. The PSF
+matching kernel for this image varies across the image (`Figure
+8 <#figure-8>`__), and thus so does the resulting decorrelation kernel,
+:math:`\phi`. Additionally, the noise (quantified in the variance planes
+of the two exposures) varies across both the template and science images
+by :math:`\sim 1\%` (data not shown here, but see `this IPython
+notebook <https://github.com/lsst-dm/diffimTests/blob/master/19.%20check%20variance%20planes.ipynb>`__).
+We computed decorrelation kernels :math:`\phi_i` for the observed
+extremes of each of these three parameters, and compared the resulting
+decorrelated image differences to the canonical decorrelated image
+difference computed using :math:`\phi` computed for the center of the
+images. The distribution of variances (sigma-clipped means of the
+variance plane) of the resulting decorrelated image differences differed
+by as much as :math:`\sim 6.0\%` at the extreme (:math:`\sim 1.5\%`
+standard deviation).
+
+This result suggests that we need to compute :math:`\phi` on a grid
+across the image, and (ideally) perform an interpolation to estimate a
+spatially-varying :math:`\phi(x,y)`.
+
 5.2. Effects of diffim decorrelation on detection and measurement
 -----------------------------------------------------------------
 
-We did some investigation into the effects of spatial variations in (a)
-the PSF matching kernel and (b) the vairances of the two input images on
-the resulting decorrelation kernel (and more importantly on the
-decorrelated image). As shown in `Figure 8 <#figure-8>`__, there is a
-small degree of variability in matching kernel across the image for a
-single DECam image differencing. There is also a variance of
-:math:`\sim 2\%` in variance across four quandrants of the same images.
-We find, however, that the contribution of the variation in kernel, if
-not accounted for, can lead to :math:`\sim 0.5\%` difference in the
-resulting diffim's overall variance. Meanwhile, not accounting for the
-small variation in variance across the image only contributes an
-additional :math:`\sim 0.05\%` in variation of diffim variance. *(This
-needs to be rewritten!)*
+See `this
+notebook <https://github.com/lsst-dm/diffimTests/blob/master/20.%20compare%20photometry.ipynb>`__.
 
-5.1. Accounting for spatial variations in noise and matching kernel
--------------------------------------------------------------------
-
-Some info is going to go here.
-
-6. References
-=============
-
-Some references are going to go here. Perhaps.
-
-7. Appendix
+6. Appendix
 ===========
 
-7.A. Appendix A. Specific implementation notes.
------------------------------------------------
+6.A. Appendix A. Technical considerations.
+------------------------------------------
 
 1. A complication arises in deriving the decorrelation kernel, in that
    the kernel starts-off with odd-sized pixel dimensions, but must be
@@ -461,7 +476,14 @@ Some references are going to go here. Perhaps.
    care to avoid small shifts in the pixels of the resulting
    decorrelated image difference.
 
-7.B. Appendix B. Implementation of basic Zackay et al. (2016) algorithm.
+2. Should we use the original (unwarped) template to compute the
+   variance :math:`\sigma_2` that enters into the computation of the
+   decorrelation kernel, or should we use the warped template? The
+   current implementation uses the warped template. This should not
+   matter so long as we know that the variance plane gets handled
+   correctly by the warping procedure.
+
+6.B. Appendix B. Implementation of basic Zackay et al. (2016) algorithm.
 ------------------------------------------------------------------------
 
 We only applied the basic Zackay, et al. (2016) procedure to a small
@@ -483,7 +505,7 @@ simulated image.
         D = ifftshift(d.real)
         return D
 
-7.C. Appendix C. Notebooks and code
+6.C. Appendix C. Notebooks and code
 -----------------------------------
 
 All figures in this document and related code are from notebooks in `the
@@ -493,8 +515,16 @@ repository <https://github.com/lsst-dm/diffimTests>`__, in particular,
 `this <https://github.com/lsst-dm/diffimTests/blob/master/13.%20compare%20L(ZOGY)%20and%20ZOGY%20diffims%20and%20PSFs.ipynb>`__,
 `this <https://github.com/lsst-dm/diffimTests/blob/master/17.%20Do%20it%20in%20the%20stack%20with%20real%20data.ipynb>`__,
 and
-`this <https://github.com/djreiss/diffimTests/blob/master/19.%20check%20variance%20planes.ipynb>`__
+`this <https://github.com/lsst-dm/diffimTests/blob/master/19.%20check%20variance%20planes.ipynb>`__
 one.
+
+The decorrelation procedure described in this technote are implemented
+in the ``ip_diffim`` and ``pipe_tasks`` LSST Github repos.
+
+7. References
+=============
+
+Some references are going to go here. Perhaps.
 
 .. |Matching kernel| image:: _static/img1.png
 .. |Correction kernel| image:: _static/img2.png

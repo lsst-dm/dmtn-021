@@ -179,7 +179,7 @@ To perform image decorrelation in this case, we simply extracted the matching ke
 
 <a name="table-2"/></a>
 
-| Decorrelation on?	| DetectThreshold	| Pos detected | Neg detected | Merged detected
+| Decorrelation?	| Detection threshold	| Positive detected | Negative detected | Merged detected
 |-------------------|-------------------|--------------|--------------|----------------|
 | Yes | 5.0	| 40	| 18	| 47 |
 | Yes | 5.5	| 35	| 15	| 41 |
@@ -194,25 +194,27 @@ To perform image decorrelation in this case, we simply extracted the matching ke
 
 Some conclusions are going to go here.
 
+## 5.1. Accounting for spatial variations in noise (variance) and matching kernel
+
+There are likely to be spatial variations across an image of the PSF matching kernel and the template- and science-image variances. These three parameters separately could contribute to spatial variations in the decorrelation kernel $\phi$, with unknown effects. (A primary effect is that, if these parameters are computed just for the center of the images and then the resulting $\phi$ is only accurate for the center of the image, and could lead to over/under-correction of the correlated noise nearer to the edges of the image difference. Another effect is that the resulting image difference PSF will also not include the accurate spatial variations.) 
+
+We explored the effect of spatial variations in all three of these parameters for a single example DECam image subtraction. The PSF matching kernel for this image varies across the image ([Figure 8](#figure-8)), and thus so does the resulting decorrelation kernel, $\phi$. Additionally, the noise (quantified in the variance planes of the two exposures) varies across both the template and science images by $\sim 1\%$ (data not shown here, but see [this IPython notebook](https://github.com/lsst-dm/diffimTests/blob/master/19.%20check%20variance%20planes.ipynb)). We computed decorrelation kernels $\phi_i$ for the observed extremes of each of these three parameters, and compared the resulting decorrelated image differences to the canonical decorrelated image difference computed using $\phi$ computed for the center of the images. The distribution of variances (sigma-clipped means of the variance plane) of the resulting decorrelated image differences differed by as much as $\sim 6.0\%$ at the extreme ($\sim 1.5\%$ standard deviation).
+
+This result suggests that we need to compute $\phi$ on a grid across the image, and (ideally) perform an interpolation to estimate a spatially-varying $\phi(x,y)$.
+
 ## 5.2. Effects of diffim decorrelation on detection and measurement
 
-We did some investigation into the effects of spatial variations in (a) the PSF matching kernel and (b) the vairances of the two input images on the resulting decorrelation kernel (and more importantly on the decorrelated image). As shown in [Figure 8](#figure-8), there is a small degree of variability in matching kernel across the image for a single DECam image differencing. There is also a variance of $\sim 2\%$ in variance across four quandrants of the same images. We find, however, that the contribution of the variation in kernel, if not accounted for, can lead to $\sim 0.5\%$ difference in the resulting diffim's overall variance. Meanwhile, not accounting for the small variation in variance across the image only contributes an additional $\sim 0.05\%$ in variation of diffim variance. *(This needs to be rewritten!)*
+See [this notebook](https://github.com/lsst-dm/diffimTests/blob/master/20.%20compare%20photometry.ipynb).
 
-## 5.1. Accounting for spatial variations in noise and matching kernel
+# 6. Appendix
 
-Some info is going to go here.
-
-# 6. References
-
-Some references are going to go here. Perhaps.
-
-# 7. Appendix
-
-### 7.A. Appendix A. Specific implementation notes.
+### 6.A. Appendix A. Technical considerations.
 
 1. A complication arises in deriving the decorrelation kernel, in that the kernel starts-off with odd-sized pixel dimensions, but must be even-sized for FFT. Then once it is inverse-FFT-ed, it must be re-shaped to odd-sized again for convolution. This must be done with care to avoid small shifts in the pixels of the resulting decorrelated image difference.
 
-### 7.B. Appendix B. Implementation of basic Zackay et al. (2016) algorithm.
+2. Should we use the original (unwarped) template to compute the variance $\sigma_2$ that enters into the computation of the decorrelation kernel, or should we use the warped template? The current implementation uses the warped template. This should not matter so long as we know that the variance plane gets handled correctly by the warping procedure.
+
+### 6.B. Appendix B. Implementation of basic Zackay et al. (2016) algorithm.
 
 We only applied the basic Zackay, et al. (2016) procedure to a small simulated image. 
 
@@ -232,6 +234,13 @@ def performZackay(R, N, P_r, P_n, sig1, sig2):
     return D
 ```
 
-### 7.C. Appendix C. Notebooks and code
+### 6.C. Appendix C. Notebooks and code
 
-All figures in this document and related code are from notebooks in [the diffimTests github repository](https://github.com/lsst-dm/diffimTests), in particular, [this](https://github.com/lsst-dm/diffimTests/blob/master/14.%20Test%20Lupton(ZOGY)%20post%20convolution%20kernel%20on%20simulated%20(noisy)%202-D%20data%20with%20a%20variable%20source-updated.ipynb), [this](https://github.com/lsst-dm/diffimTests/blob/master/13.%20compare%20L(ZOGY)%20and%20ZOGY%20diffims%20and%20PSFs.ipynb), [this](https://github.com/lsst-dm/diffimTests/blob/master/17.%20Do%20it%20in%20the%20stack%20with%20real%20data.ipynb), and [this](https://github.com/djreiss/diffimTests/blob/master/19.%20check%20variance%20planes.ipynb) one.
+All figures in this document and related code are from notebooks in [the diffimTests github repository](https://github.com/lsst-dm/diffimTests), in particular, [this](https://github.com/lsst-dm/diffimTests/blob/master/14.%20Test%20Lupton(ZOGY)%20post%20convolution%20kernel%20on%20simulated%20(noisy)%202-D%20data%20with%20a%20variable%20source-updated.ipynb), [this](https://github.com/lsst-dm/diffimTests/blob/master/13.%20compare%20L(ZOGY)%20and%20ZOGY%20diffims%20and%20PSFs.ipynb), [this](https://github.com/lsst-dm/diffimTests/blob/master/17.%20Do%20it%20in%20the%20stack%20with%20real%20data.ipynb), and [this](https://github.com/lsst-dm/diffimTests/blob/master/19.%20check%20variance%20planes.ipynb) one.
+
+The decorrelation procedure described in this technote are implemented in the `ip_diffim` and `pipe_tasks` LSST Github repos.
+
+# 7. References
+
+Some references are going to go here. Perhaps.
+
