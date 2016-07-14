@@ -59,7 +59,7 @@ In [Figure 2](#figure-2-kernels), we show the PSF matching kernel ($\kappa$) tha
 
 *Sample PSF matching kernel* $\kappa$ *(left) and resulting decorrelation kernel,* $\phi$ *for the images shown in* [Figure 1](#figure-1-image-differencing).
 
-When we convolve $\phi$ ([Figure 2](#figure-2-kernels), right panel) with the raw image difference ([Figure 1](#figure-1-image-differencing), right-most panel), we obtain the decorrelated image, shown in the left-most panel of [Figure 3](#figure-3-decorrelated-diffim). While the noise visually appears to be greater in the decorrelated image, a closer look at the statistics reveals that this is indeed the case ([Table 1](#table-1-image-difference-statistics), [Figure 4](#figure-4-decorrelated-image-statistics) and [Figure 5](#figure-5-covariance-matrices)). [Table 1](#table-1-image-difference-statistics) and [Figure 4](#figure-4-decorrelated-image-statistics) show that the variance of the decorrelated image has increased. Indeed, the measured variances reveal that the variance of the uncorrected image difference was lower than expected, while the decorrelation has increased the variance to the expected level:
+When we convolve $\phi$ ([Figure 2](#figure-2-kernels), right panel) with the raw image difference ([Figure 1](#figure-1-image-differencing), right-most panel), we obtain the decorrelated image, shown in the left-most panel of [Figure 3](#figure-3-decorrelated-diffim). The noise visually appears to be greater in the decorrelated image, and a closer look at the statistics reveals that this is indeed the case ([Table 1](#table-1-image-difference-statistics), [Figure 4](#figure-4-decorrelated-image-statistics) and [Figure 5](#figure-5-covariance-matrices)). [Figure 4](#figure-4-decorrelated-image-statistics) shows that the variance of the decorrelated image has increased. Indeed, the measured variances ([Table 1](#table-1-image-difference-statistics)) reveal that the variance of the uncorrected image difference was lower than expected, while the decorrelation has increased the variance to the expected level:
 
 |             | Variance  |  Covariance  |
 |-------------|-----------|--------------|
@@ -87,7 +87,7 @@ Expected:  0.282842712475
 ```
 -->
 
-In addition, we see ([Table 1](#table-1-image-difference-statistics) and [Figure 5](#figure-5-covariance-matrices)) that the covariances between neighboring pixels in the image difference has been significantly decreased following convolution with the decorrelation kernel. The covariance matrix has been significantly diagonalized. While the covariance of the decorrelated image might at first glance appear high relative to the random expectation, we show (below) that it is equal to the theoretical value obtained using a basic implementation of the [Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655) algorithm.
+In addition, we see ([Table 1](#table-1-image-difference-statistics) and [Figure 5](#figure-5-covariance-matrices)) that the covariances between neighboring pixels in the image difference has been significantly decreased following convolution with the decorrelation kernel. The covariance matrix has been significantly diagonalized. While the covariance of the decorrelated image might at first glance appear high relative to the random expectation, we show (below) that it is equal to the value obtained using a basic implementation of the [Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655) "proper" image subtraction procedure.
 
 <!--
 ```python
@@ -127,7 +127,7 @@ print np.nansum(cov1)/np.sum(np.diag(cov1))  # cov1 is the covar. matrix of the 
 
 ## 4.2. Comparison with Zackay, et al (2016).
 
-We developed a basic implementation of the [Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655) "proper" image differencing procedure in order to compare image differences (see [Appendex 7.A. for details](#a-appendix-a-implementation-of-basic-zackay-et-al-2016-algorithm)). Our implementation simply applies Equation (14) of their manuscript to the two simulated images, providing the (known) PSFs and variances as input:
+We developed a basic implementation of the [Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655) "proper" image differencing procedure in order to compare image differences (see [Appendex 7.B. for details](#a-appendix-b-implementation-of-basic-zackay-et-al-2016-algorithm)). Our implementation simply applies Equation (14) of their manuscript to the two simulated images, providing the (known) PSFs and variances as input:
 
 $$
 \widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2}},
@@ -148,7 +148,7 @@ As shown in [Table 1](#table-1-image-difference-statistics), many of the bulk st
 
 ## 4.3. Application to real data.
 
-We have implemented tested the proposed decorrelation method in the LSST software stack, and applied it to real data obtained from DECam. For this image differencing experiment, we used the standard [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) procedure with a spatially-varying PSF matching kernel (default configuration parameters). This computation may be turned on by setting the option `doDecorrelation=True` in the `imageDifference.py` command-line task in `pipe_tasks`. The decorrelation code itself resides in `ip_diffim`. In [Figure 7](#figure-7) we show subimages of two astrometrically aligned input exposures, the PSF-matched template image, and the image difference.
+We have implemented and tested the proposed decorrelation method in the LSST software stack, and applied it to real data obtained from DECam. For this image differencing experiment, we used the standard [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) procedure with a spatially-varying PSF matching kernel (default configuration parameters). This computation may be turned on by setting the option `doDecorrelation=True` in the `imageDifference.py` command-line task in `pipe_tasks`. The decorrelation code itself resides in `ip_diffim`. In [Figure 7](#figure-7) we show subimages of two astrometrically aligned input exposures, the PSF-matched template image, and the image difference.
 
 ![](_static/img8.png)
 
