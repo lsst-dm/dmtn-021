@@ -158,7 +158,7 @@ We have implemented and tested the proposed decorrelation method in the LSST sof
 
 *Image differencing on real (DECam) data. Subimages of the two input exposures (top; science image has been astrometrically aligned with the template), the PSF-matched science image (bottom-left), and the decorrelated image difference (bottom-right).*
 
-To perform image decorrelation in this case, we simply extracted the matching kernel $\kappa$ estimated for the center of the image, computed a constant image variance $\sigma_1^2$ and $\sigma_2^2$ over each entire image (sigma-clipped mean of its variance plane; in this example 60.0 and 62.8 for the template and science images, respectively), and computed the decorrelation kernel $\phi$ from those three quantities ([Figure 8](#figure-8)). The resulting decorrelated image difference has a greater variance (125.5 vs. 66.8, naive expected value $60.0+62.8=122.8$). Additionally, we show in [Figure 9](#figure-9) that the decorrelated DECam image indeed has a lower neighboring-pixel covariance (4.39% off-diagonal variance, vs. 34.9% for the uncorrected diffim).
+To perform image decorrelation in this case, we simply extracted the matching kernel $\kappa$ estimated for the center of the image, computed a constant image variance $\sigma_1^2$ and $\sigma_2^2$ over each entire image (sigma-clipped mean of its variance plane; in this example 60.0 and 62.8 for the template and science images, respectively), and computed the decorrelation kernel $\phi$ from those three quantities ([Figure 8](#figure-8)). The resulting decorrelated image difference has a greater variance (120.8 vs. 66.8, naive expected value $60.0+62.8=122.8$). Additionally, we show in [Figure 9](#figure-9) that the decorrelated DECam image indeed has a lower neighboring-pixel covariance (6.0% off-diagonal variance, vs. 35% for the uncorrected diffim).
 
 ![](_static/img9.png)
 ![](_static/img10.png)
@@ -188,7 +188,7 @@ The higher variance of the decorrelated image difference results in a smaller nu
 
 | Decorrelated?	| Detection threshold	| Positive detected | Negative detected | Merged detected
 |-------------------|-------------------|--------------|--------------|----------------|
-| Yes | 5.0	| 40	| 18	| 47 |
+| Yes | 5.0	| 43	| 18	| 50 |
 | Yes | 5.5	| 35	| 15	| 41 |
 | No  | 5.0	| 89	| 328 |	395 |
 | No  | 5.5	| 58   |	98 |	143 |
