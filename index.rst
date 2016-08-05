@@ -1,6 +1,6 @@
 :tocdepth: 2
-Implementation of Image Difference Decorrelation
-================================================
+Implementation of Image Difference Decorrelation for LSST Transient Detection
+=============================================================================
 
 .. raw:: html
 
@@ -9,32 +9,52 @@ Implementation of Image Difference Decorrelation
 0. Abstract
 ===========
 
-Herein, we describe ...
+Herein, we describe a method for decorrelating image differences
+produced by the `Alard & Lupton
+(1998) <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ method of
+PSF matching. Insipired by the recent work of `Zackay, et al
+(2015) <https://arxiv.org/abs/1512.06879>`__ and the previous work of
+`Kaiser
+(2001) <Addition%20of%20Images%20with%20Varying%20Seeing.%20PSDC-002-011-xx>`__,
+this proposed method uses a single post-subtraction convolution of an
+image difference to remove the neighboring pixel covariances in the
+image difference that result from the convolution of the template image
+by the PSF matching kernel. We describe the method in detail, analyze
+its effects on image differences (both real and simulated) as well as on
+detections and photometry of ``diaSources`` in decorrelated image
+differences. We also compare the decorrelated image differences with
+those resulting from a basic implementation of `Zackay, et al
+(2015) <https://arxiv.org/abs/1512.06879>`__. We describe the
+implementation of the new correction in the LSST image differencing
+pipeline, and discuss potential issues and areas of future research.
 
 1. Introduction
 ===============
 
-Image subtraction is the standard method for identifying and measuring
-transients and variables in astronomical images. In the LSST stack (and
-most other existing transient detection pipelines), image subtraction is
-enabled through point spread function (PSF) matching via the method of
-`Alard & Lupton
+Image subtraction analysis, also referred to as "difference image
+analysis", or "DIA", is the standard method for identifying and
+measuring transients and variables in astronomical images. In DIA, a
+science image is subtracted from a template image (hereafter, simply,
+"template"), in order to identify transients from either image. In the
+LSST stack (and most other existing transient detection pipelines),
+optimal image subtraction is enabled through point spread function (PSF)
+matching via the method of `Alard & Lupton
 (1998) <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ (hereafter
 *A&L*) (also, `Alard,
 2000 <http://aas.aanda.org/articles/aas/pdf/2000/11/ds8706.pdf%5D>`__).
 This procedure is used to estimate a convolution kernel which, when
-convolved with the template image (hereafter, simply, "template"),
-matches the PSF of the template with that of the science image, enabling
-an optimal subtraction. Due to its use of linear basis functions to
-model the matching kernel, the method can flexibly incorporate
-spatially-varying PSFs (i.e., via a spatially-varying matching kernel),
-as well as a spatially-varying differential background. The algorithm
-has the advantage that it does not require direct measurement of the
-images' PSFs. Instead it only needs to model the differential
-(potentially spatially-varying) matching kernel in order to obtain an
-optimal subtraction. Additionally it does not require performing a
-Fourier transform of the exposures; thus no issues arise with handling
-masked pixels and other artefacts.
+convolved with the template, matches the PSF of the template with that
+of the science image. The
+`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ procedure
+uses linear basis functions to model the matching kernel which can
+flexibly incorporate spatially-varying PSFs (via a spatially-varying
+matching kernel), as well as a spatially-varying differential
+background. The algorithm has the advantage that it does not require
+direct measurement of the images' PSFs. Instead it only needs to model
+the differential (potentially spatially-varying) matching kernel in
+order to obtain an optimal subtraction. Additionally it does not require
+performing a Fourier transform of the exposures; thus no issues arise
+with handling masked pixels and other artefacts.
 
 Image subtraction using the
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ method
@@ -136,38 +156,64 @@ sets the overall adjusted variance of the noise of the image difference
 
 Since the current implementation of
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ is performed
-in image space, we chose to implement the image decorrelation in image
-space as well. The *post-subtraction convolution kernel*
-:math:`\widehat{\phi}(k)` is then computed in frequency space from
-:math:`\widehat{\kappa}(k)`, :math:`\sigma_1`, and :math:`\sigma_2`, and
-is then inverse Fourier-transformed to a kernel :math:`\phi` in real
-space. The image difference is then convolved with :math:`\phi` to
-obtain the decorrelated image difference,
+in (real) image space, we choose to implement the image decorrelation in
+image space as well. The *post-subtraction convolution kernel*
+:math:`\widehat{\phi}(k)` is computed in frequency space from
+:math:`\widehat{\kappa}(k)`, :math:`\sigma_1`, and :math:`\sigma_2`
+(`Equation 2 <#equation-2>`__, and is inverse Fourier-transformed to a
+kernel :math:`\phi` in real space. The image difference is then
+convolved with :math:`\phi` to obtain the decorrelated image difference,
 :math:`D^\prime = \phi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]`.
-This also allows us to circumvent *FT*-ing the two exposures :math:`I_1`
-and :math:`I_2`, which could lead to artifacts due to masked and/or bad
+This allows us to circumvent *FT*-ing the two exposures :math:`I_1` and
+:math:`I_2`, which could lead to artifacts due to masked and/or bad
 pixels. Finally, the resulting PSF of :math:`D^\prime`, important for
 detection and measurement of ``diaSources``, is simply the convolution
 of the PSF of :math:`D` with :math:`\phi`.
 
-2.3. Advantanges of diffim decorrelation over Zackay, et al (2016).
--------------------------------------------------------------------
+2.3. Differences between diffim decorrelation and Zackay, et al (2016).
+-----------------------------------------------------------------------
 
 The decorrelation strategy described above is basically an "afterburner"
 correction to the standard image differencing algorithm which has been
-in wide use for over a decade. It maintains the advantages described
-previously that are implicit to the
+in wide use for over a decade. Thus it was relatively straightforward to
+integrate directly into the LSST image differencing (``ip_diffim``)
+pipeline. It maintains the advantages described previously that are
+implicit to the
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ algorithm:
 the PSFs of :math:`I_1` and :math:`I_2` do not need to be measured, and
 spatial variations in PSFs may be readily accounted for. The
 decorrelation can be relatively inexpensive, as it requires one *FFT* of
 :math:`\kappa` and one *inverse-FFT* of :math:`\widehat{\phi}(k)` (which
 are both small, of order 1,000 pixels), followed by one convolution of
-the difference image.
+the difference image. Image masks are maintained, and the variance plane
+in the decorrelated image difference is also adjusted to the correct
+variance.
 
 The decorrelation proposal is quite distinct from the image differencing
 method proposed by `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ in that it does not
+(2016) <https://arxiv.org/abs/1601.02655>`__, which involves FFT-ing the
+two input images and their PSFs. It also requires accurate measurements
+of PSFs of the two images, including any bulk astrometric offsets (which
+would be incorporated into the PSFs). It is not clear how information in
+the images' variance planes would be propagated to the final image
+difference (although theoretically, the two variance planes could simply
+be added).
+
+Of note, the `Zackay, et al.
+(2016) <https://arxiv.org/abs/1601.02655>`__ procedure is symmetric in
+:math:`I_1` and :math:`I_2` (i.e., it does not explicitly require
+:math:`I_1` to have a broader PSF than :math:`I_2`), whereas the
+standard `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__
+will not work correctly if this is not the case. (Deconvolution of the
+template, or "pre-convolution" of the science image are possible methods
+to circumvent this issue with
+`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__). It has
+also been claimed (`Zackay, et al.
+(2016) <https://arxiv.org/abs/1601.02655>`__) that the `Zackay, et al.
+(2016) <https://arxiv.org/abs/1601.02655>`__ procedure produces cleaner
+image subtractions in cases of (1) perpendicular-oriented PSFs and (2)
+astrometric jitter. This claim has yet to be investigated thoroughly
+using the LSST implementation.
 
 3. Results
 ==========
@@ -175,15 +221,16 @@ method proposed by `Zackay, et al.
 3.1 Simulated image differences.
 --------------------------------
 
-We have developed a simple reference implementation of
+We developed a simple reference implementation of
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__, and applied
 it to simulated images with point-sources with a variety of
-signal-to-noise, and different Gaussian PSFs and image variances. We
-included the capability to simulate spatial PSF variation, including
-spatially-varying astrometric offsets (which can be incorporated into
-the `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ PSF
-matching kernel). An example input template and science image, as well
-as PSF-matched template and resulting *diffim* is shown in `Figure
+signal-to-noise, and different (elliptical) Gaussian PSFs and (constant)
+image variances. We included the capability to simulate spatial PSF
+variation, including spatially-varying astrometric offsets (which can be
+modeled by the
+`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ PSF matching
+kernel). An example input template and science image, as well as
+PSF-matched template and resulting *diffim* is shown in `Figure
 1 <#figure-1-image-differencing>`__.
 
 .. figure:: _static/img0.png
@@ -202,8 +249,8 @@ In `Figure 2 <#figure-2-kernels>`__, we show the PSF matching kernel
 1 <#figure-1-image-differencing>`__, and the resulting decorrelation
 kernel, :math:`\phi`. We note that :math:`\phi` largely has the
 structure of a delta function, with a small region of negative signal,
-thus its capability, when convolved with the difference image, to act as
-an effective "sharpening" kernel.
+thus its capability, when convolved with the difference image, to act
+effectively as a "sharpening" kernel.
 
 |Matching kernel| |Correction kernel|
 
@@ -528,7 +575,7 @@ spatially-varying :math:`\phi(x,y)`.
 5. Appendix
 ===========
 
-5.A. Appendix A. Technical considerations.
+5.A. Appendix I. Technical considerations.
 ------------------------------------------
 
 1. A complication arises in deriving the decorrelation kernel, in that
@@ -545,11 +592,11 @@ spatially-varying :math:`\phi(x,y)`.
    matter so long as we know that the variance plane gets handled
    correctly by the warping procedure.
 
-5.B. Appendix B. Implementation of basic Zackay et al. (2016) algorithm.
-------------------------------------------------------------------------
+5.B. Appendix II. Implementation of basic Zackay et al. (2016) algorithm.
+-------------------------------------------------------------------------
 
-We only applied the basic Zackay, et al. (2016) procedure to a small
-simulated image.
+We applied the basic Zackay, et al. (2016) procedure only to a set of
+small, simulated imagee.
 
 .. code:: python
 
@@ -567,18 +614,18 @@ simulated image.
         D = ifftshift(d.real)
         return D
 
-5.C. Appendix C. Notebooks and code
------------------------------------
+5.C. Appendix III. Notebooks and code
+-------------------------------------
 
-All figures in this document and related code are from notebooks in `the
-diffimTests github
+All figures in this document were generated using IPython notebooks and
+associated code in `the diffimTests github
 repository <https://github.com/lsst-dm/diffimTests>`__, in particular,
-`this <https://github.com/lsst-dm/diffimTests/blob/master/14.%20Test%20Lupton(ZOGY)%20post%20convolution%20kernel%20on%20simulated%20(noisy)%202-D%20data%20with%20a%20variable%20source-updated.ipynb>`__,
-`this <https://github.com/lsst-dm/diffimTests/blob/master/13.%20compare%20L(ZOGY)%20and%20ZOGY%20diffims%20and%20PSFs.ipynb>`__,
-`this <https://github.com/lsst-dm/diffimTests/blob/master/17.%20Do%20it%20in%20the%20stack%20with%20real%20data.ipynb>`__,
+notebooks numbered
+`14. <https://github.com/lsst-dm/diffimTests/blob/master/14.%20Test%20Lupton(ZOGY)%20post%20convolution%20kernel%20on%20simulated%20(noisy)%202-D%20data%20with%20a%20variable%20source-updated.ipynb>`__,
+`13. <https://github.com/lsst-dm/diffimTests/blob/master/13.%20compare%20L(ZOGY)%20and%20ZOGY%20diffims%20and%20PSFs.ipynb>`__,
+`17. <https://github.com/lsst-dm/diffimTests/blob/master/17.%20Do%20it%20in%20the%20stack%20with%20real%20data.ipynb>`__,
 and
-`this <https://github.com/lsst-dm/diffimTests/blob/master/19.%20check%20variance%20planes.ipynb>`__
-one.
+`19. <https://github.com/lsst-dm/diffimTests/blob/master/19.%20check%20variance%20planes.ipynb>`__.
 
 The decorrelation procedure described in this technote are implemented
 in the ``ip_diffim`` and ``pipe_tasks`` LSST Github repos.

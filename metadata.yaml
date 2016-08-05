@@ -20,7 +20,7 @@ authors:
     - 'David J Reiss, Robert H Lupton'
 
 # Current document version
-last_revised: '2016-06-23'
+last_revised: '2016-08-05'
 
 # Version. Use Semvar, e.g., 1.0, including .dev, as necessary
 # This version string should correspond to the git tag when the document is published on Zenodo

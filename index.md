@@ -4,7 +4,7 @@
 
 # 0. Abstract
 
-Herein, we describe ...
+Herein, we describe a method for decorrelating image differences produced by the [Alard & Lupton (1998)](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) method of PSF matching. Insipired by the recent work of [Zackay, et al (2015)](https://arxiv.org/abs/1512.06879) and the previous work of [Kaiser (2001)](Addition of Images with Varying Seeing. PSDC-002-011-xx), this proposed method uses a single post-subtraction convolution of an image difference to remove the neighboring pixel covariances in the image difference that result from the convolution of the template image by the PSF matching kernel. We describe the method in detail, analyze its effects on image differences (both real and simulated) as well as on detections and photometry of `diaSources` in decorrelated image differences. We also compare the decorrelated image differences with those resulting from a basic implementation of [Zackay, et al (2015)](https://arxiv.org/abs/1512.06879). We describe the implementation of the new correction in the LSST image differencing pipeline, and discuss potential issues and areas of future research.
 
 # 1. Introduction
 
@@ -36,19 +36,23 @@ $$
 \widehat{\phi}(k) = \sqrt{ \frac{ \sigma_1^2 + \sigma_2^2}{ \sigma_1^2 + \widehat{\kappa}^2(k) \sigma_2^2}},
 $$
 
+<a name="equation-2"/></a>
+
 ###### Equation 2.
 
 which is convolved with the image difference, and has the effect of decorrelating the noise in the image difference. It also (explicitly) contains an extra factor of $\sqrt{\sigma_1^2+\sigma_2^2}$, which sets the overall adjusted variance of the noise of the image difference (in contrast to the unit variance set by the algorithm proposed by [Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655)). 
 
 ## 2.2. Implementation details
 
-Since the current implementation of [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) is performed in image space, we chose to implement the image decorrelation in image space as well. The *post-subtraction convolution kernel* $\widehat{\phi}(k)$ is then computed in frequency space from $\widehat{\kappa}(k)$, $\sigma_1$, and $\sigma_2$, and is then inverse Fourier-transformed to a kernel $\phi$ in real space. The image difference is then convolved with $\phi$ to obtain the decorrelated image difference, $D^\prime = \phi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]$. This also allows us to circumvent *FT*-ing the two exposures $I_1$ and $I_2$, which could lead to artifacts due to masked and/or bad pixels. Finally, the resulting PSF of $D^\prime$, important for detection and measurement of `diaSources`, is simply the convolution of the PSF of $D$ with $\phi$.
+Since the current implementation of [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) is performed in (real) image space, we choose to implement the image decorrelation in image space as well. The *post-subtraction convolution kernel* $\widehat{\phi}(k)$ is computed in frequency space from $\widehat{\kappa}(k)$, $\sigma_1$, and $\sigma_2$ ([Equation 2](#equation-2), and is inverse Fourier-transformed to a kernel $\phi$ in real space. The image difference is then convolved with $\phi$ to obtain the decorrelated image difference, $D^\prime = \phi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]$. This allows us to circumvent *FT*-ing the two exposures $I_1$ and $I_2$, which could lead to artifacts due to masked and/or bad pixels. Finally, the resulting PSF of $D^\prime$, important for detection and measurement of `diaSources`, is simply the convolution of the PSF of $D$ with $\phi$.
 
-## 2.3. Advantanges of diffim decorrelation over Zackay, et al (2016).
+## 2.3. Differences between diffim decorrelation and Zackay, et al (2016).
 
-The decorrelation strategy described above is basically an "afterburner" correction to the standard image differencing algorithm which has been in wide use for over a decade. It maintains the advantages described previously that are implicit to the [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) algorithm: the PSFs of $I_1$ and $I_2$ do not need to be measured, and spatial variations in PSFs may be readily accounted for. The decorrelation can be relatively inexpensive, as it requires one *FFT* of $\kappa$ and one *inverse-FFT* of $\widehat{\phi}(k)$ (which are both small, of order 1,000 pixels), followed by one convolution of the difference image. 
+The decorrelation strategy described above is basically an "afterburner" correction to the standard image differencing algorithm which has been in wide use for over a decade. Thus it was relatively straightforward to integrate directly into the LSST image differencing (`ip_diffim`) pipeline. It maintains the advantages described previously that are implicit to the [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) algorithm: the PSFs of $I_1$ and $I_2$ do not need to be measured, and spatial variations in PSFs may be readily accounted for. The decorrelation can be relatively inexpensive, as it requires one *FFT* of $\kappa$ and one *inverse-FFT* of $\widehat{\phi}(k)$ (which are both small, of order 1,000 pixels), followed by one convolution of the difference image. Image masks are maintained, and the variance plane in the decorrelated image difference is also adjusted to the correct variance.
 
-The decorrelation proposal is quite distinct from the image differencing method proposed by [Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655) in that it does not 
+The decorrelation proposal is quite distinct from the image differencing method proposed by [Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655), which involves FFT-ing the two input images and their PSFs. It also requires accurate measurements of PSFs of the two images, including any bulk astrometric offsets (which would be incorporated into the PSFs). It is not clear how information in the images' variance planes would be propagated to the final image difference (although theoretically, the two variance planes could simply be added).
+
+Of note, the [Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655) procedure is symmetric in $I_1$ and $I_2$ (i.e., it does not explicitly require $I_1$ to have a broader PSF than $I_2$), whereas the standard [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A) will not work correctly if this is not the case. (Deconvolution of the template, or "pre-convolution" of the science image are possible methods to circumvent this issue with [A&L](http://adsabs.harvard.edu/abs/1998ApJ...503..325A)). It has also been claimed   ([Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655)) that the [Zackay, et al. (2016)](https://arxiv.org/abs/1601.02655) procedure produces cleaner image subtractions in cases of (1) perpendicular-oriented PSFs and (2) astrometric jitter. This claim has yet to be investigated thoroughly using the LSST implementation.
 
 # 3. Results
 
@@ -64,7 +68,7 @@ We developed a simple reference implementation of [A&L](http://adsabs.harvard.ed
 
 *From left to right, sample (simulated) template image, PSF-matched template, science image, and difference image. In this simulated example, the source near the center was set to increase in flux by 2% between the science and template "exposures."*
 
-In [Figure 2](#figure-2-kernels), we show the PSF matching kernel ($\kappa$) that was estimated for the images shown in [Figure 1](#figure-1-image-differencing), and the resulting decorrelation kernel, $\phi$. We note that $\phi$ largely has the structure of a delta function, with a small region of negative signal, thus its capability, when convolved with the difference image, to act as an effective "sharpening" kernel.
+In [Figure 2](#figure-2-kernels), we show the PSF matching kernel ($\kappa$) that was estimated for the images shown in [Figure 1](#figure-1-image-differencing), and the resulting decorrelation kernel, $\phi$. We note that $\phi$ largely has the structure of a delta function, with a small region of negative signal, thus its capability, when convolved with the difference image, to act effectively as a "sharpening" kernel.
 
 ![Matching kernel](_static/img1.png)
 ![Correction kernel](_static/img2.png)
