@@ -558,8 +558,8 @@ just at or above the :math:`5\sigma` threshold.
 *Figure 10.*
 ~~~~~~~~~~~~
 
-*As in Figure 6 from `Slater, et al.
-(2016) <http://dmtn-006.lsst.io/en/latest/#forcephot-sci-template-v197367>`__:
+*As in Figure 6 from* `Slater, et al.
+(2016) <http://dmtn-006.lsst.io/en/latest/#forcephot-sci-template-v197367>`__\ *:
 PSF photometry in the template and science exposures, forced on the
 positions of diaSource detections in the image difference following
 image difference decorrelation. The parallel diagonal lines denote
@@ -568,7 +568,8 @@ science−template* :math:`>5\sqrt{2}\sigma` *and science−template*
 detection. The numerous detections just at or below these detection
 thresholds have been eliminated, and (ignoring the two clouds of
 detections near (0, 0) and (-2.5, 2.5)) the primary detections are above
-(or below) the detection thresholds.*
+(or below) the detection thresholds. Sources have not been filtered to
+remove false detections (e.g., dipoles).*
 
 4. Conclusions and future work
 ==============================
