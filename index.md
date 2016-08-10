@@ -5,9 +5,9 @@
 [ALref]: http://adsabs.harvard.edu/abs/1998ApJ...503..325A
 [ZOGY]: https://arxiv.org/abs/1601.02655
 
-# 0. Abstract
+# Abstract
 
-Herein, we describe a method for decorrelating image differences produced by the [Alard & Lupton (1998)][ALref] method of PSF matching. Insipired by the recent work of [Zackay, et al. (2015)][ZOGY] and the prior work of [Kaiser (2004)](Addition of Images with Varying Seeing. PSDC-002-011-xx), this proposed method uses a single post-subtraction convolution of an image difference to remove the neighboring pixel covariances in the image difference that result from the convolution of the template image by the PSF matching kernel. We describe the method in detail, analyze its effects on image differences (both real and simulated) as well as on detections and photometry of `DIA sources` in decorrelated image differences. We also compare the decorrelated image differences with those resulting from a basic implementation of [Zackay, et al. (2015)][ZOGY]. We describe the implementation of the new correction in the LSST image differencing pipeline, and discuss potential issues and areas of future research.
+Herein, we describe a method for decorrelating image differences produced by the [Alard & Lupton (1998)][ALref] method of PSF matching. Insipired by the recent work of [Zackay, et al. (2016)][ZOGY] and the prior work of [Kaiser (2004)](Addition of Images with Varying Seeing. PSDC-002-011-xx), this proposed method uses a single post-subtraction convolution of an image difference to remove the neighboring pixel covariances in the image difference that result from the convolution of the template image by the PSF matching kernel. We describe the method in detail, analyze its effects on image differences (both real and simulated) as well as on detections and photometry of detected sources in decorrelated image differences. We also compare the decorrelated image differences with those resulting from a basic implementation of [Zackay, et al. (2016)][ZOGY]. We describe the implementation of the new correction in the LSST image differencing pipeline, and discuss potential issues and areas of future research.
 
 # 1. Introduction
 
@@ -25,7 +25,7 @@ The goal of PSF matching via [A&L][ALref] is to estimate the PSF matching kernel
 
 ## 2.1. Difference image decorrelation.
 
-An algorithm developed by [Kaiser (2004)](Addition of Images with Varying Seeing. PSDC-002-011-xx) and later rediscovered by [Zackay, et al. (2015)][ZOGY] showed that the noise in a PSF-matched coadd image can be decorrelated via noise whitening (i.e. flattening the noise spectrum). The same principle may also be applied to image differencing ([Zackay, et al. (2016)][ZOGY]). In the case of [A&L][ALref] PSF matching, this results in an image difference in Fourier space $\widehat{D}(k)$: 
+An algorithm developed by [Kaiser (2004)](Addition of Images with Varying Seeing. PSDC-002-011-xx) and later rediscovered by [Zackay, et al. (2015)][http://arxiv.org/abs/1512.06879] showed that the noise in a PSF-matched coadd image can be decorrelated via noise whitening (i.e. flattening the noise spectrum). The same principle may also be applied to image differencing ([Zackay, et al. (2016)][ZOGY]). In the case of [A&L][ALref] PSF matching, this results in an image difference in Fourier space $\widehat{D}(k)$: 
 
 $$
 \widehat{D}(k) = \big[ \widehat{I}_1(k) - \widehat{\kappa}(k) \widehat{I}_2(k) \big] \sqrt{ \frac{ \sigma_1^2 + \sigma_2^2}{ \sigma_1^2 + \widehat{\kappa}^2(k) \sigma_2^2}}
@@ -53,7 +53,7 @@ The decorrelation strategy described above is basically an "afterburner" correct
 
 The decorrelation proposal is quite distinct from the image differencing method proposed by [Zackay, et al. (2016)][ZOGY], which involves FFT-ing the two input images and their PSFs. It also requires accurate measurements of PSFs of the two images, including any bulk astrometric offsets (which would be incorporated into the PSFs). It is not clear how information in the images' variance planes would be propagated to the final image difference (although theoretically, the two variance planes could simply be added).
 
-Of note, the [Zackay, et al. (2016)][ZOGY] procedure is symmetric in $I_1$ and $I_2$ (i.e., it does not explicitly require $I_1$ to have a broader PSF than $I_2$), whereas the standard [A&L][ALref] will not work correctly if this is not the case. (Deconvolution of the template, or "pre-convolution" of the science image are possible methods to address this concern with [A&L][ALref].) It was also claimed by the authors that the [Zackay, et al. (2016)][ZOGY] procedure produces cleaner image subtractions in cases of (1) perpendicular-oriented PSFs and (2) astrometric jitter. This claim has yet to be investigated thoroughly using the LSST [A&L][ALref] implementation.
+Of note, the [Zackay, et al. (2016)][ZOGY] procedure is symmetric in $I_1$ and $I_2$ (e.g., it does not explicitly require $I_1$ to have a broader PSF than $I_2$), whereas the standard [A&L][ALref] is not. (Deconvolution of the template, or "pre-convolution" of the science image are possible methods to address this concern with [A&L][ALref].) It was also claimed by the authors that the [Zackay, et al. (2016)][ZOGY] procedure produces cleaner image subtractions in cases of (1) perpendicular-oriented PSFs and (2) astrometric jitter. This claim has yet to be investigated thoroughly using the LSST [A&L][ALref] implementation.
 
 # 3. Results
 
@@ -148,15 +148,16 @@ print np.nansum(cov1)/np.sum(np.diag(cov1))  # cov1 is the covar. matrix of the 
 
 ## 3.2. Comparison with Zackay, et al. (2016).
 
-We developed a basic implementation of the [Zackay, et al. (2016)][ZOGY] "proper" image differencing procedure in order to compare image differences (see [Appendex 5.B. for details](#b-appendix-ii-implementation-of-basic-zackay-et-al-2016-algorithm)). Our implementation simply applies Equation (14) of [their manuscript][ZOGY] to the two simulated images, providing the (known) PSFs and variances as input:
+We developed a basic implementation of the [Zackay, et al. (2016)][ZOGY] "proper" image differencing procedure in order to compare image differences (see [Appendex 5.B. for details](#b-appendix-ii-implementation-of-basic-zackay-et-al-2016-algorithm)). Our implementation simply applies Equation (14) of [their manuscript][ZOGY] to the two simulated reference ($R$) and "new" ($N$) images, providing their (known) PSFs $P_r$, $P_n$ and variances $\sigma_r^2$, $\sigma_n^2$as to derive the proper difference image $D$:
 
 $$
-\widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2}},
+\widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2}}.
 $$
 
 ###### *Equation 3.*
 
-where $D$ is the proper difference image, $R$ and $N$ are the reference and "new" image, respectively, $P_r$ and $P_n$ are their PSFs, $F_r$ and $F_n$ are their flux-based zero-points (which we will set to one here), $\sigma_r^2$ and $\sigma_n^2$ are their variance, and $\widehat{D}$ denotes the FT of $D$. This expression is in Fourier space, and we inverse-FFT the image difference $\widehat{D}$ to obtain the final image $D$.
+Here, $F_r$ and $F_n$ are the images' flux-based zero-points (which we will set to one here), and $\widehat{D}$ denotes the FT of $D$. This expression is in Fourier space, and we inverse-FFT the image difference $\widehat{D}$ to obtain the final image $D$.
+
 As shown in [Table 1](#table-1-image-difference-statistics), many of the bulk statistics between image differences derived via the two methods are (as expected) nearly identical. In fact, the two "optimal" image differences are nearly identical, as we show in [Figure 6](#figure-6-diffim-difference). The variance of the difference between the two difference images is of the order of 0.05% of the variances of the individual images.
 
 ![](_static/img7.png)
@@ -264,7 +265,7 @@ The decorrelation process modifies the PSF of the image difference such that thi
 
 ### 5.B. Appendix II. Implementation of basic Zackay et al. (2016) algorithm.
 
-We applied the basic Zackay, et al. (2016) procedure only to a set of small, simulated imagee. 
+We applied the basic [Zackay, et al. (2016)][ZOGY] procedure only to a set of small, simulated images. 
 
 ```python
 def performZackay(R, N, P_r, P_n, sig1, sig2):
