@@ -13,15 +13,15 @@ Herein, we describe a method for decorrelating image differences
 produced by the `Alard & Lupton
 (1998) <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ method of
 PSF matching. Insipired by the recent work of `Zackay, et al
-(2015) <https://arxiv.org/abs/1512.06879>`__ and the previous work of
+(2015) <https://arxiv.org/abs/1512.06879>`__ and the prior work of
 `Kaiser
-(2001) <Addition%20of%20Images%20with%20Varying%20Seeing.%20PSDC-002-011-xx>`__,
+(2004) <Addition%20of%20Images%20with%20Varying%20Seeing.%20PSDC-002-011-xx>`__,
 this proposed method uses a single post-subtraction convolution of an
 image difference to remove the neighboring pixel covariances in the
 image difference that result from the convolution of the template image
 by the PSF matching kernel. We describe the method in detail, analyze
 its effects on image differences (both real and simulated) as well as on
-detections and photometry of ``diaSources`` in decorrelated image
+detections and photometry of ``DIA sources`` in decorrelated image
 differences. We also compare the decorrelated image differences with
 those resulting from a basic implementation of `Zackay, et al
 (2015) <https://arxiv.org/abs/1512.06879>`__. We describe the
@@ -108,7 +108,7 @@ will be correlated.
 ------------------------------------
 
 An algorithm developed by `Kaiser
-(2001) <Addition%20of%20Images%20with%20Varying%20Seeing.%20PSDC-002-011-xx>`__
+(2004) <Addition%20of%20Images%20with%20Varying%20Seeing.%20PSDC-002-011-xx>`__
 and later rediscovered by `Zackay, et al
 (2015) <https://arxiv.org/abs/1512.06879>`__ showed that the noise in a
 PSF-matched coadd image can be decorrelated via noise whitening (i.e.
@@ -167,7 +167,7 @@ convolved with :math:`\phi` to obtain the decorrelated image difference,
 This allows us to circumvent *FT*-ing the two exposures :math:`I_1` and
 :math:`I_2`, which could lead to artifacts due to masked and/or bad
 pixels. Finally, the resulting PSF of :math:`D^\prime`, important for
-detection and measurement of ``diaSources``, is simply the convolution
+detection and measurement of ``DIA sources``, is simply the convolution
 of the PSF of :math:`D` with :math:`\phi`.
 
 2.3. Comparison of diffim decorrelation and Zackay, et al (2016).
@@ -487,17 +487,17 @@ matrices for uncorrected (left) and corrected (right) image difference.*
 -----------------------------------------------------------------
 
 See `this
-notebook <https://github.com/lsst-dm/diffimTests/blob/master/20.%20compare%20photometry.ipynb>`__.
+notebook <https://github.com/lsst-dm/diffimTests/blob/master/20.%20compare%20photometry-corrected-many-DECam-images.ipynb>`__.
 
 The higher variance of the decorrelated image difference results in a
-smaller number of ``diaSource`` detections (:math:`\sim` 70% fewer) at
+smaller number of ``DIA source`` detections (:math:`\sim` 70% fewer) at
 the same default (5.5-:math:`\sigma`) detection threshold (`Table
 2 <#table-2>`__). Notably, the detection count does not increase
 substantially (:math:`\sim 14\%` increase ) for the decorrelated image
 difference when the detection threshold is set to the canonical
 5.0-\ :math:`\sigma` level, whereas it does (:math:`\sim 176\%`
 increase) for the uncorrected image difference (which is why the
-standard ``diaSource`` detection threshold has typically been set to
+standard ``DIA source`` detection threshold has typically been set to
 5.5-\ :math:`\sigma` until now).
 
 +------------------+------------------+--------------+--------------+----------------+
@@ -516,30 +516,30 @@ standard ``diaSource`` detection threshold has typically been set to
 *Table 2.*
 ~~~~~~~~~~
 
-*Comparison of numbers of* ``diaSources`` *detected in DECam image
-difference run with decorrelation turned on or off, and with a 5.5-*
-:math:`\sigma` *or 5.0-* :math:`\sigma` *detection threshold.*
+*Comparison of numbers of DIA sources detected in DECam image difference
+run with decorrelation turned on or off, and with a 5.5-* :math:`\sigma`
+*or 5.0-* :math:`\sigma` *detection threshold.*
 
 We matched the catalogs of detections between the uncorrected
 ("undecorrelated") and decorrelated image differences (to within
-:math:`5^{\prime\prime}`), and found that 45 of the 47 ``diaSources``
+:math:`5^{\prime\prime}`), and found that 45 of the 47 ``DIA sources``
 detected in the decorrelated image are also detected in the uncorrected
 image difference. We compared the aperture photometry of the 45 matched
-``diaSources`` in the two catalogs (using the
+``DIA sources`` in the two catalogs (using the
 ``base_CircularApertureFlux_50_0_flux`` measurement) using a linear
 regression to quantify any differential offset and scaling. (We did not
 filter to remove dipoles, as the ``DipoleClassification`` task is still
 a work in progress and doing so would remove a large number of
-``diaSources``. We found that there is no significant photometric offset
-between measurements in the two images, while the flux measurement is
-:math:`\sim 4.5 \pm 0.5\%` lower in the decorrelated image.
-Unsurprisingly, the quantified errors in the flux measurements
+``DIA sources``. We found that there is no significant photometric
+offset between measurements in the two images, while the flux
+measurement is :math:`\sim 4.5 \pm 0.5\%` lower in the decorrelated
+image. Unsurprisingly, the quantified errors in the flux measurements
 (``base_CircularApertureFlux_50_0_fluxSigma``) are
 :math:`\sim 120 \pm 5\%` greater in the decorrelated image.
 
-A more thorough analysis would involve recapitulating some of the work
-of `Slater, et al (2016) <http://dmtn-006.lsst.io>`__, which described
-the issue with per-pixel covariance in
+For a more thorough analysis, we recapitulated some of the work of
+`Slater, et al (2016) <http://dmtn-006.lsst.io>`__, which described the
+issue with per-pixel covariance in
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ image
 differences generated by the LSST stack and the resulting issues with
 detection and measurement, but this time using the decorrelated image
@@ -561,7 +561,7 @@ just at or above the :math:`5\sigma` threshold.
 *As in Figure 6 from* `Slater, et al.
 (2016) <http://dmtn-006.lsst.io/en/latest/#forcephot-sci-template-v197367>`__\ *:
 PSF photometry in the template and science exposures, forced on the
-positions of diaSource detections in the image difference following
+positions of DIA source detections in the image difference following
 image difference decorrelation. The parallel diagonal lines denote
 science−template* :math:`>5\sqrt{2}\sigma` *and science−template*
 :math:`< 5\sqrt{2}\sigma`, *which are the intended criteria for
@@ -578,33 +578,34 @@ We have shown that performing image difference decorrelation as an
 "afterburner" post-processing step to
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ image
 differences generated by the LSST stack is an effective method to
-eliminate most issues arising from the per-pixel covariance in said
-images. We also showed that the resulting decorrelated image differences
-have similar statistical and noise properties to those generated using
-the method recently proposed by `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__.
+eliminate most issues arising from the resulting per-pixel covariance in
+said images. We also showed that the resulting decorrelated image
+differences have similar statistical and noise properties to those
+generated using the "proper image subtraction" method recently proposed
+by `Zackay, et al. (2016) <https://arxiv.org/abs/1601.02655>`__.
 
 There still exist several outstanding issues or questions related to
-details of the decorrelation procedure as it is implemented in the LSST
-stack. We now describe several of those.
+details of the decorrelation procedure as it is currently implemented in
+the LSST stack. We now describe several of those.
 
 4.1. Accounting for spatial variations in noise (variance) and matching kernel
 ------------------------------------------------------------------------------
 
 There will be spatial variations across an image of the PSF matching
 kernel and the template- and science-image per-pixel variances (an
-example of this is shown in `Figure 8 <#figure-8>`__. These three
-parameters separately will contribute to spatial variations in the
-decorrelation kernel :math:`\phi`, with unknown second-order effects. A
-primary effect is that, if these parameters are computed just for the
-center of the images, then the resulting :math:`\phi` is only accurate
-for the center of the image, and could lead to over/under-correction of
-the correlated noise nearer to the edges of the image difference.
-Another effect is that the resulting image difference PSF will also not
+example of the kernel variation is shown in `Figure 8 <#figure-8>`__).
+These three parameters separately will contribute to spatial variations
+in the decorrelation kernel :math:`\phi`, with unknown resulting
+second-order effects on the resulting decorrelated image. If these
+parameters are computed just for the center of the images (as they are,
+currently), then the resulting :math:`\phi` is only accurate for the
+center of the image, and could lead to over/under-correction of the
+correlated noise nearer to the edges of the image difference. Another
+effect is that the resulting adjusted image difference PSF will also not
 include the accurate spatial variations.
 
 We explored the effect of spatial variations in all three of these
-parameters for a single example DECam image subtraction. The PSF
+parameters for a single example DECam CCD image subtraction. The PSF
 matching kernel for this image varies across the image (`Figure
 8 <#figure-8>`__), and thus so does the resulting decorrelation kernel,
 :math:`\phi`. Additionally, the noise (quantified in the variance planes
@@ -614,15 +615,15 @@ notebook <https://github.com/lsst-dm/diffimTests/blob/master/19.%20check%20varia
 We computed decorrelation kernels :math:`\phi_i` for the observed
 extremes of each of these three parameters, and compared the resulting
 decorrelated image differences to the canonical decorrelated image
-difference computed using :math:`\phi` computed for the center of the
+difference derived using :math:`\phi` computed for the center of the
 images. The distribution of variances (sigma-clipped means of the
 variance plane) of the resulting decorrelated image differences differed
 by as much as :math:`\sim 5.6\%` at the extreme (:math:`\sim 1.3\%`
 standard deviation). The per-pixel covariance in the resulting images
-varied by as much as :math:`\sim 50\%` at the extreme (:math:`\sim 25\%`
-standard deviation) but all represented significant reductions from
-:math:`34.9\%` in the uncorrected image difference, down to between
-:math:`4.0` and :math:`8.0\%`. Finally, the number of detections on the
+varied by as much as :math:`\sim 50\%` (between :math:`4.0` and
+:math:`8.0\%`) at the extreme (:math:`\sim 25\%` standard deviation) but
+all represented significant reductions from :math:`34.9\%` in the
+uncorrected image difference. Finally, the number of detections on the
 image differences varied by :math:`10\%` at the extremes (:math:`2.2\%`
 standard deviation) around :math:`\sim 50` detections total. We have yet
 to investiate DIA source measurement, which could be affected by the
