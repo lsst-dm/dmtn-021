@@ -6,14 +6,14 @@ Implementation of Image Difference Decorrelation for LSST Transient Detection
 
    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"></script>
 
-0. Abstract
-===========
+Abstract
+========
 
 Herein, we describe a method for decorrelating image differences
 produced by the `Alard & Lupton
 (1998) <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ method of
-PSF matching. Insipired by the recent work of `Zackay, et al.
-(2015) <https://arxiv.org/abs/1601.02655>`__ and the prior work of
+PSF matching. Inspired by the recent work of `Zackay, et al.
+(2016) <https://arxiv.org/abs/1601.02655>`__ and the prior work of
 `Kaiser
 (2004) <Addition%20of%20Images%20with%20Varying%20Seeing.%20PSDC-002-011-xx>`__,
 this proposed method uses a single post-subtraction convolution of an
@@ -21,10 +21,10 @@ image difference to remove the neighboring pixel covariances in the
 image difference that result from the convolution of the template image
 by the PSF matching kernel. We describe the method in detail, analyze
 its effects on image differences (both real and simulated) as well as on
-detections and photometry of ``DIA sources`` in decorrelated image
+detections and photometry of detected sources in decorrelated image
 differences. We also compare the decorrelated image differences with
 those resulting from a basic implementation of `Zackay, et al.
-(2015) <https://arxiv.org/abs/1601.02655>`__. We describe the
+(2016) <https://arxiv.org/abs/1601.02655>`__. We describe the
 implementation of the new correction in the LSST image differencing
 pipeline, and discuss potential issues and areas of future research.
 
@@ -54,17 +54,17 @@ direct measurement of the images' PSFs. Instead it only needs to model
 the differential (potentially spatially-varying) matching kernel in
 order to obtain an optimal subtraction. Additionally it does not require
 performing a Fourier transform of the exposures; thus no issues arise
-with handling masked pixels and other artefacts.
+with handling masked pixels and other artifacts.
 
 Image subtraction using the
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ method
 produces an optimal difference image in the case of a noise-less
 template. However, when the template is noisy (*e.g.*, when the template
 is comprised of a small number of co-adds), then its convolution with
-the matching kernel leads to significant covariance of neighboring
-pixels within the resulting subtracted image, which will adversely
-affect accurate detection and measurement if not accounted for (`Slater,
-et al. (2016) <http://dmtn-006.lsst.io>`__; `Price & Magnier
+the matching kernel leads to significant covariance of noise among
+neighboring pixels within the resulting subtracted image, which will
+adversely affect accurate detection and measurement if not accounted for
+(`Slater, et al. (2016) <http://dmtn-006.lsst.io>`__; `Price & Magnier
 (2004) <Pan-STARRS%20Image%20Processing%20Pipeline:%20PSF-Matching%20for%20Subtraction%20and%20Stacking>`__).
 False detections in this case can be reduced by tracking the covariance
 matrix, or more *ad-hoc*, increasing the detection threshold (as is the
@@ -74,9 +74,9 @@ current implementation, where detection is performed at
 While LSST will, over its ten-year span, collect dozens of observations
 per field and passband, at the onset of the survey, this number will be
 small enough that this issue of noisy templates will be important.
-Moreover, if we inted to bin templates by airmass to account for
+Moreover, if we intend to bin templates by airmass to account for
 differential chromatic refraction (DCR), then the total number of coadds
-contributing to each template will necesserily be smaller. Finally,
+contributing to each template will necessarily be smaller. Finally,
 depending upon the flavor of coadd (`Bosch,
 2016 <http://dmtn-015.lsst.io>`__) used to construct the template,
 template noise and the resulting covariances in the image difference
@@ -112,7 +112,7 @@ the noise in :math:`D` will be correlated.
 An algorithm developed by `Kaiser
 (2004) <Addition%20of%20Images%20with%20Varying%20Seeing.%20PSDC-002-011-xx>`__
 and later rediscovered by `Zackay, et al.
-(2015) <https://arxiv.org/abs/1601.02655>`__ showed that the noise in a
+(2015) <http://arxiv.org/abs/1512.06879>`__ showed that the noise in a
 PSF-matched coadd image can be decorrelated via noise whitening (i.e.
 flattening the noise spectrum). The same principle may also be applied
 to image differencing (`Zackay, et al.
@@ -166,7 +166,7 @@ in (real) image space, we implement the image decorrelation in image
 space as well. The *post-subtraction convolution kernel*
 :math:`\widehat{\phi}(k)` is computed in frequency space from
 :math:`\widehat{\kappa}(k)`, :math:`\sigma_1`, and :math:`\sigma_2`
-(`Equation 2 <#equation-2>`__, and is inverse Fourier-transformed to a
+(`Equation 2 <#equation-2>`__), and is inverse Fourier-transformed to a
 kernel :math:`\phi` in real space. The image difference is then
 convolved with :math:`\phi` to obtain the decorrelated image difference,
 :math:`D^\prime = \phi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]`.
@@ -207,12 +207,11 @@ be added).
 
 Of note, the `Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__ procedure is symmetric in
-:math:`I_1` and :math:`I_2` (i.e., it does not explicitly require
+:math:`I_1` and :math:`I_2` (e.g., it does not explicitly require
 :math:`I_1` to have a broader PSF than :math:`I_2`), whereas the
-standard `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__
-will not work correctly if this is not the case. (Deconvolution of the
-template, or "pre-convolution" of the science image are possible methods
-to address this concern with
+standard `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ is
+not. (Deconvolution of the template, or "pre-convolution" of the science
+image are possible methods to address this concern with
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__.) It was
 also claimed by the authors that the `Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__ procedure produces cleaner
@@ -301,12 +300,13 @@ level:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 *Variances and neighbor-pixel covariances for image differences derived
-from two images each with input variances of 0.2.* :math:`^*`\ *Note
-that the* `Zackay, et al. (2016) <https://arxiv.org/abs/1601.02655>`__
-*procedure intrinsically normalizes the image difference to have unit
-variance. The measure of covariance is actually the sum of off-diagonal
-terms divided by the sum of the diagonal terms (and should equal 0 for a
-perfectly diagonal matrix).*
+from two images each with input Gaussian noise with a standard deviation
+of 0.2 (variance of 0.04).* :math:`^*`\ *Note that the* `Zackay, et al.
+(2016) <https://arxiv.org/abs/1601.02655>`__ *procedure intrinsically
+normalizes the image difference to have unit variance. The measure of
+covariance is actually the sum of off-diagonal terms divided by the sum
+of the diagonal terms (and should equal 0 for a perfectly diagonal
+matrix).*
 
 .. raw:: html
 
@@ -386,32 +386,32 @@ difference* :math:`D^\prime` *(right) in* `Figure
 
 We developed a basic implementation of the `Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__ "proper" image differencing
-procedure in order to compare image differences (see `Appendex 5.B. for
+procedure in order to compare image differences (see `Appendix 5.B. for
 details <#b-appendix-ii-implementation-of-basic-zackay-et-al-2016-algorithm>`__).
 Our implementation simply applies Equation (14) of `their
 manuscript <https://arxiv.org/abs/1601.02655>`__ to the two simulated
-images, providing the (known) PSFs and variances as input:
+reference (:math:`R`) and "new" (:math:`N`) images, providing their
+(known) PSFs :math:`P_r`, :math:`P_n` and variances :math:`\sigma_r^2`,
+:math:`\sigma_n^2`\ as to derive the proper difference image :math:`D`:
 
 .. math::
 
 
-   \widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2}},
+   \widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2}}.
 
 *Equation 3.*
 ~~~~~~~~~~~~~
 
-where :math:`D` is the proper difference image, :math:`R` and :math:`N`
-are the reference and "new" image, respectively, :math:`P_r` and
-:math:`P_n` are their PSFs, :math:`F_r` and :math:`F_n` are their
-flux-based zero-points (which we will set to one here),
-:math:`\sigma_r^2` and :math:`\sigma_n^2` are their variance, and
-:math:`\widehat{D}` denotes the FT of :math:`D`. This expression is in
-Fourier space, and we inverse-FFT the image difference
-:math:`\widehat{D}` to obtain the final image :math:`D`. As shown in
-`Table 1 <#table-1-image-difference-statistics>`__, many of the bulk
-statistics between image differences derived via the two methods are (as
-expected) nearly identical. In fact, the two "optimal" image differences
-are nearly identical, as we show in `Figure
+Here, :math:`F_r` and :math:`F_n` are the images' flux-based zero-points
+(which we will set to one here), and :math:`\widehat{D}` denotes the FT
+of :math:`D`. This expression is in Fourier space, and we inverse-FFT
+the image difference :math:`\widehat{D}` to obtain the final image
+:math:`D`.
+
+As shown in `Table 1 <#table-1-image-difference-statistics>`__, many of
+the bulk statistics between image differences derived via the two
+methods are (as expected) nearly identical. In fact, the two "optimal"
+image differences are nearly identical, as we show in `Figure
 6 <#figure-6-diffim-difference>`__. The variance of the difference
 between the two difference images is of the order of 0.05% of the
 variances of the individual images.
@@ -438,7 +438,7 @@ procedure with a spatially-varying PSF matching kernel (default
 configuration parameters). The decorrelation computation may be turned
 on by setting the option ``doDecorrelation=True`` for the
 ``imageDifference.py`` command-line task. In `Figure 7 <#figure-7>`__ we
-show subimages of two astrometrically aligned input exposures, the
+show sub-images of two astrometrically aligned input exposures, the
 PSF-matched template image, and the decorrelated image difference.
 
 .. figure:: _static/img8.png
@@ -447,9 +447,9 @@ PSF-matched template image, and the decorrelated image difference.
 *Figure 7.*
 ~~~~~~~~~~~
 
-*Image differencing on real (DECam) data. Subimages of the two input
-exposures (top; science image has been astrometrically aligned with the
-template), the PSF-matched science image (bottom-left), and the
+*Image differencing on real (DECam) data. Sub-images of the two input
+exposures (top; template has been astrometrically aligned with the
+science image), the PSF-matched template (bottom-left), and the
 decorrelated image difference (bottom-right).*
 
 ``DecorrelateALKernelTask`` simply extracts the
@@ -631,14 +631,14 @@ all represented significant reductions from :math:`34.9\%` in the
 uncorrected image difference. Finally, the number of detections on the
 image differences varied by :math:`10\%` at the extremes (:math:`2.2\%`
 standard deviation) around :math:`\sim 50` detections total. We have yet
-to investiate DIA source measurement, which could be affected by the
+to investigate DIA source measurement, which could be affected by the
 assumption of a constant PSF across the image difference.
 
 We have not determined whether this uncertainty in image difference
 statistics arising from using a single (constant) decorrelation kernel
 and constant image variances for diffim decorrelation will have a
 significant effect on LSST alert generation. It is clearly at most a
-second-order effect, with measureable uncertainties of order a few
+second-order effect, with measurable uncertainties of order a few
 percent at most. If this uncertainty is deemed to high, then we will
 need to investigate computing :math:`\phi` on a grid across the image,
 and (ideally) perform an interpolation to estimate a spatially-varying
@@ -694,8 +694,9 @@ accurate and covariances will not be a concern.
 5.B. Appendix II. Implementation of basic Zackay et al. (2016) algorithm.
 -------------------------------------------------------------------------
 
-We applied the basic Zackay, et al. (2016) procedure only to a set of
-small, simulated imagee.
+We applied the basic `Zackay, et al.
+(2016) <https://arxiv.org/abs/1601.02655>`__ procedure only to a set of
+small, simulated images.
 
 .. code:: python
 
