@@ -238,7 +238,7 @@ For a more thorough analysis, we recapitulated some of the work of [Slater, et a
 
 ###### *Figure 11.*
 
-*As in Figure 7 from* [Slater, et al. (2016)](http://dmtn-006.lsst.io//#forcephot-hists)*: Comparison of force photometry SNR (red) versus the SNR in image difference (blue) for all sources in a single DECam exposure. The black line shows the expected detection counts from random noise ([Slater, et al. (2016)](http://dmtn-006.lsst.io/)). The left figure is for uncorrected image difference (identical to [Slater, et al. (2016)](http://dmtn-006.lsst.io//#forcephot-hists)). The right is the same but for sources detected at 5-$\sigma$ in the decorrelated image difference.
+*As in Figure 7 from* [Slater, et al. (2016)](http://dmtn-006.lsst.io//#forcephot-hists)*: Comparison of force photometry SNR (red) versus the SNR in image difference (blue) for all sources in a single DECam exposure. The black line shows the expected detection counts from random noise* ([Slater, et al. (2016)](http://dmtn-006.lsst.io/)). *The left figure is for uncorrected image difference (identical to* [Slater, et al. (2016)](http://dmtn-006.lsst.io//#forcephot-hists)). *The right is the same but for sources detected at 5-$\sigma$ in the decorrelated image difference.*
 
 # 4. Conclusions and future work
 
