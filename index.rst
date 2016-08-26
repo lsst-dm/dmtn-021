@@ -553,9 +553,11 @@ analysis on the same set of DECam images as described in `Slater, et al.
 (2016) <http://dmtn-006.lsst.io>`__. In `Figure 10 <#figure-10>`__
 below, we present an updated version of `Figure 6 from Slater, et al.
 (2016) <http://dmtn-006.lsst.io/#forcephot-sci-template-v197367>`__
-after decorrelation has been performed. Our analysis shows that the
-detections in the decorrelated image difference are now nicely tracking
-just at or above the :math:`5\sigma` threshold.
+after decorrelation has been performed. We also present in `Figure
+11 <#figure-11>`__ a version of `Figure 7 from Slater, et al.
+(2016) <http://dmtn-006.lsst.io/#forcephot-hists>`__. Our analysis shows
+that the detections in the decorrelated image difference are now nicely
+tracking just at or above the :math:`5\sigma` threshold.
 
 .. figure:: _static/fig_10b.png
    :alt: 
@@ -564,7 +566,7 @@ just at or above the :math:`5\sigma` threshold.
 ~~~~~~~~~~~~
 
 *As in Figure 6 from* `Slater, et al.
-(2016) <http://dmtn-006.lsst.io/en/latest/#forcephot-sci-template-v197367>`__\ *:
+(2016) <http://dmtn-006.lsst.io/#forcephot-sci-template-v197367>`__\ *:
 PSF photometry in the template and science exposures, forced on the
 positions of DIA source detections in the image difference following
 image difference decorrelation. The parallel diagonal lines denote
@@ -575,6 +577,22 @@ thresholds have been eliminated, and (ignoring the two clouds of
 detections near (0, 0) and (-2.5, 2.5)) the primary detections are above
 (or below) the detection thresholds. Sources have not been filtered to
 remove false detections (e.g., dipoles).*
+
+|image6| |image7|
+
+*Figure 11.*
+~~~~~~~~~~~~
+
+*As in Figure 7 from* `Slater, et al.
+(2016) <http://dmtn-006.lsst.io//#forcephot-hists>`__\ \*: Comparison of
+force photometry SNR (red) versus the SNR in image difference (blue) for
+all sources in a single DECam exposure. The black line shows the
+expected detection counts from random noise (`Slater, et al.
+(2016) <http://dmtn-006.lsst.io/>`__). The left figure is for
+uncorrected image difference (identical to `Slater, et al.
+(2016) <http://dmtn-006.lsst.io//#forcephot-hists>`__). The right is the
+same but for sources detected at 5-\ :math:`\sigma` in the decorrelated
+image difference.
 
 4. Conclusions and future work
 ==============================
@@ -748,3 +766,5 @@ Some references are going to go here. Perhaps.
 .. |Covariance matrix 2| image:: _static/img6.png
 .. |image4| image:: _static/img9.png
 .. |image5| image:: _static/img10.png
+.. |image6| image:: _static/fig11a.png
+.. |image7| image:: _static/fig11b.png
