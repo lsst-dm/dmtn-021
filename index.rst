@@ -591,7 +591,7 @@ expected detection counts from random noise* (`Slater, et al.
 (2016) <http://dmtn-006.lsst.io/>`__). *The left figure is for
 uncorrected image difference (identical to* `Slater, et al.
 (2016) <http://dmtn-006.lsst.io//#forcephot-hists>`__). *The right is
-the same but for sources detected at 5-\ :math:`\sigma` in the
+the same but for sources detected at* 5-\ :math:`\sigma` *in the
 decorrelated image difference.*
 
 4. Conclusions and future work
