@@ -14,16 +14,15 @@ produced by the `Alard & Lupton
 (1998) <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ method of
 PSF matching. Inspired by the recent work of `Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__ and the prior work of
-`Kaiser
-(2004) <Addition%20of%20Images%20with%20Varying%20Seeing.%20PSDC-002-011-xx>`__,
-this proposed method uses a single post-subtraction convolution of an
-image difference to remove the neighboring pixel covariances in the
-image difference that result from the convolution of the template image
-by the PSF matching kernel. We describe the method in detail, analyze
-its effects on image differences (both real and simulated) as well as on
-detections and photometry of detected sources in decorrelated image
-differences. We also compare the decorrelated image differences with
-those resulting from a basic implementation of `Zackay, et al.
+Kaiser (2004), "PSDC-002-011-xx: Addition of Images with Varying
+Seeing", this proposed method uses a single post-subtraction convolution
+of an image difference to remove the neighboring pixel covariances in
+the image difference that result from the convolution of the template
+image by the PSF matching kernel. We describe the method in detail,
+analyze its effects on image differences (both real and simulated) as
+well as on detections and photometry of detected sources in decorrelated
+image differences. We also compare the decorrelated image differences
+with those resulting from a basic implementation of `Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__. We describe the
 implementation of the new correction in the LSST image differencing
 pipeline, and discuss potential issues and areas of future research.
@@ -44,11 +43,14 @@ matching via the method of `Alard & Lupton
 2000 <http://aas.aanda.org/articles/aas/pdf/2000/11/ds8706.pdf%5D>`__).
 This procedure is used to estimate a convolution kernel which, when
 convolved with the template, matches the PSF of the template with that
-of the science image. The
+of the science image by minimizing the mean squared difference between
+the matched template and science image, given the assumption of no
+variability between the two. The
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ procedure
-uses linear basis functions to model the matching kernel which can
-flexibly incorporate spatially-varying PSFs (via a spatially-varying
-matching kernel), as well as a spatially-varying differential
+uses linear basis functions, with potentially spatially-varying linear
+coefficients, to model the potentially spatially-varying matching kernel
+which can flexibly account for spatially-varying differences in PSFs
+between the two images, as well as a spatially-varying differential
 background. The algorithm has the advantage that it does not require
 direct measurement of the images' PSFs. Instead it only needs to model
 the differential (potentially spatially-varying) matching kernel in
@@ -64,12 +66,13 @@ is comprised of a small number of co-adds), then its convolution with
 the matching kernel leads to significant covariance of noise among
 neighboring pixels within the resulting subtracted image, which will
 adversely affect accurate detection and measurement if not accounted for
-(`Slater, et al. (2016) <http://dmtn-006.lsst.io>`__; `Price & Magnier
-(2004) <Pan-STARRS%20Image%20Processing%20Pipeline:%20PSF-Matching%20for%20Subtraction%20and%20Stacking>`__).
-False detections in this case can be reduced by tracking the covariance
-matrix, or more *ad-hoc*, increasing the detection threshold (as is the
-current implementation, where detection is performed at
-5.5-\ :math:`\sigma` rather than the canonical 5.0-\ :math:`\sigma`).
+(`Slater, et al. (2016) <http://dmtn-006.lsst.io>`__; Price & Magnier
+(2004), "Pan-STARRS Image Processing Pipeline: PSF-Matching for
+Subtraction and Stacking"). False detections in this case can be reduced
+by tracking the covariance matrix, or more *ad-hoc*, increasing the
+detection threshold (as is the current implementation, where detection
+is performed at 5.5-\ :math:`\sigma` rather than the canonical
+5.0-\ :math:`\sigma`).
 
 While LSST will, over its ten-year span, collect dozens of observations
 per field and passband, at the onset of the survey, this number will be
@@ -96,22 +99,21 @@ differences.
 
 The goal of PSF matching via
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ is to
-estimate the PSF matching kernel :math:`\kappa` that best matches the
-PSF of the two images being subtracted, :math:`I_1` and :math:`I_2`
-(typically :math:`I_2` is the template image, which is convolved with
-the PSF matching kernel :math:`\kappa`). The image difference :math:`D`
-is then :math:`D = I_1 - (\kappa \otimes I_2)`. More technically,
-`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ estimates
-the :math:`\kappa` which minimizes the residuals in :math:`D`. As
-mentioned above, due to the convolution (:math:`\kappa \otimes I_2`),
+estimate the kernel :math:`\kappa` that best matches the PSF of the two
+images being subtracted, :math:`I_1` and :math:`I_2` (by minimizing
+their mean squared differences; typically :math:`I_2` is the template
+image, which is convolved with :math:`\kappa`). The image difference
+:math:`D` is then :math:`D = I_1 - (\kappa \otimes I_2)`. More
+technically, `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__
+estimates the :math:`\kappa` which minimizes the residuals in :math:`D`.
+As mentioned above, due to the convolution (:math:`\kappa \otimes I_2`),
 the noise in :math:`D` will be correlated.
 
 2.1. Difference image decorrelation.
 ------------------------------------
 
-An algorithm developed by `Kaiser
-(2004) <Addition%20of%20Images%20with%20Varying%20Seeing.%20PSDC-002-011-xx>`__
-and later rediscovered by `Zackay, et al.
+An algorithm developed by Kaiser (2004), "PSDC-002-011-xx: Addition of
+Images with Varying Seeing." and later rediscovered by `Zackay, et al.
 (2015) <http://arxiv.org/abs/1512.06879>`__ showed that the noise in a
 PSF-matched coadd image can be decorrelated via noise whitening (i.e.
 flattening the noise spectrum). The same principle may also be applied
@@ -121,16 +123,17 @@ to image differencing (`Zackay, et al.
 matching, this results in an image difference in Fourier space
 :math:`\widehat{D}(k)`:
 
-.. math::
-
-
-   \widehat{D}(k) = \big[ \widehat{I}_1(k) - \widehat{\kappa}(k) \widehat{I}_2(k) \big] \sqrt{ \frac{ \sigma_1^2 + \sigma_2^2}{ \sigma_1^2 + \widehat{\kappa}^2(k) \sigma_2^2}}
-
 *Equation 1.*
 ~~~~~~~~~~~~~
 
-Here, :math:`\sigma_i^2` is the mean of the per-pixel variances of image
-:math:`I_i` -- i.e., :math:`\sigma_i^2 = \sum_{x,y} \sigma_i^2(x,y)`.
+.. math::
+
+
+   \widehat{D}(k) = \big[ \widehat{I}_1(k) - \widehat{\kappa}(k) \widehat{I}_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \widehat{\kappa}^2(k) \overline{\sigma}_2^2}}
+
+Here, :math:`\overline{\sigma}_i^2` is the mean of the per-pixel
+variances of image :math:`I_i` -- i.e.,
+:math:`\overline{\sigma}_i^2 = \frac{\sum_{x,y} \sigma_i^2(x,y)}{N_{x,y}}`.
 Thus, we may perform PSF matching to estimate :math:`\kappa` by standard
 methods (e.g.,
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ and related
@@ -139,23 +142,23 @@ methods) and then correct for the noise in the template via `Eq.
 1 <#equation-1>`__ is a *post-subtraction convolution kernel*, or
 decorrelation kernel :math:`\widehat{\phi}(k)`,
 
+*Equation 2.*
+~~~~~~~~~~~~~
+
 .. math::
 
 
-   \widehat{\phi}(k) = \sqrt{ \frac{ \sigma_1^2 + \sigma_2^2}{ \sigma_1^2 + \widehat{\kappa}^2(k) \sigma_2^2}},
-
-*Equation 2.*
-~~~~~~~~~~~~~
+   \widehat{\phi}(k) = \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \widehat{\kappa}^2(k) \overline{\sigma}_2^2}},
 
 which is convolved with the image difference, and has the effect of
 decorrelating the noise in the image difference that was introduced by
 convolution of :math:`I_2` with the
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ PSF matching
 kernel :math:`\kappa`. It also (explicitly) contains an extra factor of
-:math:`\sqrt{\sigma_1^2+\sigma_2^2}`, which sets the overall adjusted
-variance of the noise of the image difference (in contrast to the unit
-variance set by the algorithm proposed by `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__).
+:math:`\sqrt{\overline{\sigma}_1^2+\overline{\sigma}_2^2}`, which sets
+the overall adjusted variance of the noise of the image difference (in
+contrast to the unit variance set by the algorithm proposed by `Zackay,
+et al. (2016) <https://arxiv.org/abs/1601.02655>`__).
 
 2.2. Implementation details
 ---------------------------
@@ -165,10 +168,11 @@ Since the current implementation of
 in (real) image space, we implement the image decorrelation in image
 space as well. The *post-subtraction convolution kernel*
 :math:`\widehat{\phi}(k)` is computed in frequency space from
-:math:`\widehat{\kappa}(k)`, :math:`\sigma_1`, and :math:`\sigma_2`
-(`Equation 2 <#equation-2>`__), and is inverse Fourier-transformed to a
-kernel :math:`\phi` in real space. The image difference is then
-convolved with :math:`\phi` to obtain the decorrelated image difference,
+:math:`\widehat{\kappa}(k)`, :math:`\overline{\sigma}_1`, and
+:math:`\overline{\sigma}_2` (`Equation 2 <#equation-2>`__), and is
+inverse Fourier-transformed to a kernel :math:`\phi` in real space. The
+image difference is then convolved with :math:`\phi` to obtain the
+decorrelated image difference,
 :math:`D^\prime = \phi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]`.
 This allows us to circumvent *FT*-ing the two exposures :math:`I_1` and
 :math:`I_2`, which could lead to artifacts due to masked and/or bad
@@ -237,52 +241,45 @@ modeled by the
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ PSF matching
 kernel). An example input template and science image, as well as
 PSF-matched template and resulting *diffim* is shown in `Figure
-1 <#figure-1-image-differencing>`__.
+1 <#figure-1>`__.
 
 .. figure:: _static/img0.png
-   :alt: 
+   :name: figure-1
 
-*Figure 1. Image differencing.*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   From left to right, sample (simulated) template image, PSF-matched
+   template, science image, and difference image. In this simulated
+   example, the source near the center was set to increase in flux by 2%
+   between the science and template images.
 
-*From left to right, sample (simulated) template image, PSF-matched
-template, science image, and difference image. In this simulated
-example, the source near the center was set to increase in flux by 2%
-between the science and template "exposures."*
-
-In `Figure 2 <#figure-2-kernels>`__, we show the PSF matching kernel
+In `Figure 2 <#figure-2>`__, we show the PSF matching kernel
 (:math:`\kappa`) that was estimated for the images shown in `Figure
-1 <#figure-1-image-differencing>`__, and the resulting decorrelation
-kernel, :math:`\phi`. We note that :math:`\phi` largely has the
-structure of a delta function, with a small region of negative signal,
-thus its capability, when convolved with the difference image, to act
-effectively as a "sharpening" kernel.
+1 <#figure-1>`__, and the resulting decorrelation kernel, :math:`\phi`.
+We note that :math:`\phi` largely has the structure of a delta function,
+with a small region of negative signal, thus its capability, when
+convolved with the difference image, to act effectively as a
+"sharpening" kernel.
 
-|Matching kernel| |Correction kernel|
+.. figure:: _static/img1.png
+   :name: 
 
-*Figure 2. Kernels.*
-~~~~~~~~~~~~~~~~~~~~
+.. figure:: _static/img2.png
+   :name: figure-2
 
-*Sample PSF matching kernel* :math:`\kappa` *(left) and resulting
-decorrelation kernel,* :math:`\phi` *for the images shown in* `Figure
-1 <#figure-1-image-differencing>`__.
+   Sample PSF matching kernel :math:`\kappa` (left) and resulting
+   decorrelation kernel :math:`\phi` (right) for the images shown in
+   `Figure 1 <#figure-1>`__.
 
-When we convolve :math:`\phi` (`Figure 2 <#figure-2-kernels>`__, right
-panel) with the raw image difference (`Figure
-1 <#figure-1-image-differencing>`__, right-most panel), we obtain the
-decorrelated image, shown in the left-most panel of `Figure
-3 <#figure-3-decorrelated-diffim>`__. The noise visually appears to be
-greater in the decorrelated image, and a closer look at the statistics
-reveals that this is indeed the case (`Table
-1 <#table-1-image-difference-statistics>`__, `Figure
-4 <#figure-4-decorrelated-image-statistics>`__ and `Figure
-5 <#figure-5-covariance-matrices>`__). `Figure
-4 <#figure-4-decorrelated-image-statistics>`__ shows that the variance
-of the decorrelated image has increased. Indeed, the measured variances
-(`Table 1 <#table-1-image-difference-statistics>`__) reveal that the
-variance of the uncorrected image difference was lower than expected,
-while the decorrelation has increased the variance to the expected
-level:
+When we convolve :math:`\phi` (`Figure 2 <#figure-2>`__, right panel)
+with the raw image difference (`Figure 1 <#figure-1>`__, right-most
+panel), we obtain the decorrelated image, shown in the left-most panel
+of `Figure 3 <#figure-3>`__. The noise visually appears to be greater in
+the decorrelated image, and a closer look at the statistics reveals that
+this is indeed the case (`Table 1 <#table-1>`__, `Figure
+4 <#figure-4>`__ and `Figure 5 <#figure-5>`__). `Figure 4 <#figure-4>`__
+shows that the variance of the decorrelated image has increased. Indeed,
+the measured variances (`Table 1 <#table-1>`__) reveal that the variance
+of the uncorrected image difference was lower than expected, while the
+decorrelation has increased the variance to the expected level:
 
 +-------------------------+---------------------+--------------+
 |                         | Variance            | Covariance   |
@@ -296,17 +293,17 @@ level:
 | Zackay, et al. (2016)   | 0.987\ :math:`^*`   | 0.301        |
 +-------------------------+---------------------+--------------+
 
-*Table 1. Image difference statistics.*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Table 1. Image difference statistics.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-*Variances and neighbor-pixel covariances for image differences derived
+Variances and neighbor-pixel covariances for image differences derived
 from two images each with input Gaussian noise with a standard deviation
-of 0.2 (variance of 0.04).* :math:`^*`\ *Note that the* `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ *procedure intrinsically
+of 0.2 (variance of 0.04). :math:`^*`\ Note that the `Zackay, et al.
+(2016) <https://arxiv.org/abs/1601.02655>`__ procedure intrinsically
 normalizes the image difference to have unit variance. The measure of
 covariance is actually the sum of off-diagonal terms divided by the sum
 of the diagonal terms (and should equal 0 for a perfectly diagonal
-matrix).*
+matrix).
 
 .. raw:: html
 
@@ -325,16 +322,16 @@ matrix).*
    ```
    -->
 
-In addition, we see (`Table 1 <#table-1-image-difference-statistics>`__
-and `Figure 5 <#figure-5-covariance-matrices>`__) that the covariances
-between neighboring pixels in the image difference has been
-significantly decreased following convolution with the decorrelation
-kernel. The covariance matrix has been significantly diagonalized. While
-the covariance of the decorrelated image might at first glance appear
-high relative to the random expectation, we show (below) that it is
-equal to the value obtained using a basic implementation of the `Zackay,
-et al. (2016) <https://arxiv.org/abs/1601.02655>`__ "proper" image
-subtraction procedure.
+In addition, we see (`Table 1 <#table-1>`__ and `Figure
+5 <#figure-5>`__) that the covariances between neighboring pixels in the
+image difference has been significantly decreased following convolution
+with the decorrelation kernel. The covariance matrix has been
+significantly diagonalized. While the covariance of the decorrelated
+image might at first glance appear high relative to the random
+expectation, we show (below) that it is equal to the value obtained
+using a basic implementation of the `Zackay, et al.
+(2016) <https://arxiv.org/abs/1601.02655>`__ "proper" image subtraction
+procedure.
 
 .. raw:: html
 
@@ -350,36 +347,29 @@ subtraction procedure.
    -->
 
 .. figure:: _static/img3.png
-   :alt: 
+   :name: figure-3
 
-*Figure 3. Decorrelated diffim.*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-*On the left is the decorrelated image difference,* :math:`D^\prime`.
-*Original image difference* :math:`D` *is shown here for comparison, in
-the right-most panel, with the same intensity scale, as well as in*
-`Figure 1 <#figure-1-image-differencing>`__.
+   On the left is the decorrelated image difference, :math:`D^\prime`.
+   Original image difference :math:`D` is shown here for comparison, in
+   the right-most panel, with the same intensity scale, as well as in
+   `Figure 1 <#figure-1>`__.
 
 .. figure:: _static/img4.png
-   :alt: 
+   :name: figure-4
 
-*Figure 4. Decorrelated image statistics.*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   Histogram of sigma-clipped pixels in the original image difference\*
+   :math:`D` (blue; 'orig') and the decorrelated image difference
+   :math:`D^\prime` (red; 'corr') in `Figure 3 <#figure-3>`__.
 
-*Histogram of sigma-clipped pixels in the original image difference*
-:math:`D` *(blue; 'orig') and the decorrelated image difference*
-:math:`D^\prime` *(red; 'corr') in* `Figure
-3 <#figure-3-decorrelated-diffim>`__.
+.. figure:: _static/img5.png
+   :name: 
 
-|Covariance matrix 1| |Covariance matrix 2|
+.. figure:: _static/img6.png
+   :name: figure-5
 
-*Figure 5. Covariance matrices.*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-*Covariance between neighboring pixels in the original, uncorrected
-image difference* :math:`D` *(left) and the decorrelated image
-difference* :math:`D^\prime` *(right) in* `Figure
-3 <#figure-3-decorrelated-diffim>`__.
+   Covariance between neighboring pixels in the original, uncorrected
+   image difference :math:`D` (left) and the decorrelated image
+   difference :math:`D^\prime` (right) in `Figure 3 <#figure-3>`__.
 
 3.2. Comparison with Zackay, et al. (2016).
 -------------------------------------------
@@ -394,13 +384,13 @@ reference (:math:`R`) and "new" (:math:`N`) images, providing their
 (known) PSFs :math:`P_r`, :math:`P_n` and variances :math:`\sigma_r^2`,
 :math:`\sigma_n^2`\ as to derive the proper difference image :math:`D`:
 
+Equation 3.
+~~~~~~~~~~~
+
 .. math::
 
 
    \widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2}}.
-
-*Equation 3.*
-~~~~~~~~~~~~~
 
 Here, :math:`F_r` and :math:`F_n` are the images' flux-based zero-points
 (which we will set to one here), and :math:`\widehat{D}` denotes the FT
@@ -412,19 +402,16 @@ As shown in `Table 1 <#table-1-image-difference-statistics>`__, many of
 the bulk statistics between image differences derived via the two
 methods are (as expected) nearly identical. In fact, the two "optimal"
 image differences are nearly identical, as we show in `Figure
-6 <#figure-6-diffim-difference>`__. The variance of the difference
-between the two difference images is of the order of 0.05% of the
-variances of the individual images.
+6 <#figure-6>`__. The variance of the difference between the two
+difference images is of the order of 0.05% of the variances of the
+individual images.
 
 .. figure:: _static/img7.png
-   :alt: 
+   :name: figure-6
 
-*Figure 6. Diffim difference.*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-*Histogram of pixel-wise difference between optimal image differences.
-Each image difference has been rescaled to unit variance to facilitate
-differencing.*
+   Histogram of pixel-wise difference between optimal image differences.
+   Each image difference has been rescaled to unit variance to
+   facilitate differencing.
 
 3.3. Application to real data.
 ------------------------------
@@ -442,51 +429,47 @@ show sub-images of two astrometrically aligned input exposures, the
 PSF-matched template image, and the decorrelated image difference.
 
 .. figure:: _static/img8.png
-   :alt: 
+   :name: figure-7
 
-*Figure 7.*
-~~~~~~~~~~~
-
-*Image differencing on real (DECam) data. Sub-images of the two input
-exposures (top; template has been astrometrically aligned with the
-science image), the PSF-matched template (bottom-left), and the
-decorrelated image difference (bottom-right).*
+   Image differencing on real (DECam) data. Sub-images of the two input
+   exposures (top; template has been astrometrically aligned with the
+   science image), the PSF-matched template (bottom-left), and the
+   decorrelated image difference (bottom-right).
 
 ``DecorrelateALKernelTask`` simply extracts the
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ PSF matching
 kernel :math:`\kappa` estimated previously by
 ``lsst.ip.diffim.ImagePsfMatchTask.subtractExposures()`` for the center
-of the image, and estimates a constant image variance :math:`\sigma_1^2`
-and :math:`\sigma_2^2` for each image (sigma-clipped mean of its entire
-variance plane; in this example 62.8 and 60.0 for the science and
-template images, respectively). The task then computes the decorrelation
-kernel :math:`\phi` from those three quantities (`Figure
-8 <#figure-8>`__). As expected, the resulting decorrelated image
-difference has a greater variance than the "uncorrected" image
-difference (120.8 vs. 66.8), and a value close to the naive expected
-variance :math:`60.0+62.8=122.8`. Additionally, we show in `Figure
-9 <#figure-9>`__ that the decorrelated DECam image indeed has a lower
-neighboring-pixel covariance (6.0% off-diagonal covariance, vs. 35% for
-the uncorrected diffim).
+of the image, and estimates a constant image variance
+:math:`\overline{\sigma}_1^2` and :math:`\overline{\sigma}_2^2` for each
+image (sigma-clipped mean of its variance plane; in this example 62.8
+and 60.0 for the science and template images, respectively). The task
+then computes the decorrelation kernel :math:`\phi` from those three
+quantities (`Figure 8 <#figure-8>`__). As expected, the resulting
+decorrelated image difference has a greater variance than the
+"uncorrected" image difference (120.8 vs. 66.8), and a value close to
+the naive expected variance :math:`60.0+62.8=122.8`. Additionally, we
+show in `Figure 9 <#figure-9>`__ that the decorrelated DECam image
+indeed has a lower neighboring-pixel covariance (6.0% off-diagonal
+covariance, vs. 35% for the uncorrected diffim).
 
-|image4| |image5|
+.. figure:: _static/img9.png
+   :name: 
 
-*Figure 8.*
-~~~~~~~~~~~
+.. figure:: _static/img10.png
+   :name: figure-8
 
-*Image differencing on real (DECam) data. PSF matching kernels (left)
-and corresponding decorrelation kernels (right). Shown are kernels
-derived from two corners of the image which showed the greatest
-variation in the matching kernels (pixel coordinates overlaid).*
+   Image differencing on real (DECam) data. PSF matching kernels (left)
+   and corresponding decorrelation kernels (right). Shown are kernels
+   derived from two corners of the image which showed the greatest
+   variation in the matching kernels (pixel coordinates overlaid).
 
 .. figure:: _static/img11.png
-   :alt: 
+   :name: figure-9
 
-*Figure 9.*
-~~~~~~~~~~~
-
-*Image differencing on real (DECam) data. Neighboring pixel covariance
-matrices for uncorrected (left) and corrected (right) image difference.*
+   Image differencing on real (DECam) data. Neighboring pixel covariance
+   matrices for uncorrected (left) and corrected (right) image
+   difference.
 
 3.4. Effects of diffim decorrelation on detection and measurement
 -----------------------------------------------------------------
@@ -497,13 +480,14 @@ notebook <https://github.com/lsst-dm/diffimTests/blob/master/20.%20compare%20pho
 The higher variance of the decorrelated image difference results in a
 smaller number of ``DIA source`` detections (:math:`\sim` 70% fewer) at
 the same default (5.5-:math:`\sigma`) detection threshold (`Table
-2 <#table-2>`__). Notably, the detection count does not increase
-substantially (:math:`\sim 14\%` increase ) for the decorrelated image
-difference when the detection threshold is set to the canonical
-5.0-\ :math:`\sigma` level, whereas it does (:math:`\sim 176\%`
-increase) for the uncorrected image difference (which is why the
-standard ``DIA source`` detection threshold has typically been set to
-5.5-\ :math:`\sigma` until now).
+2 <#table-2>`__). Notably, if we decrease the detection threshold to the
+desired 5.0-\ :math:`\sigma` level, the detection count in the
+decorrelated image difference does not increase substantially
+(:math:`\sim 14\%`). However, the number of detections does increase
+dramatically (:math:`\sim 176\%`) for the uncorrected image difference
+if we were to switch to a 5.0-\ :math:`\sigma` detection threshold.
+(This is why the default ``DIA source`` detection threshold has
+previously been set in the LSST stack to 5.5-\ :math:`\sigma`).
 
 +------------------+------------------+--------------+--------------+----------------+
 | Decorrelated?    | Detection        | Positive     | Negative     | Merged         |
@@ -518,12 +502,8 @@ standard ``DIA source`` detection threshold has typically been set to
 | No               | 5.5              | 58           | 98           | 143            |
 +------------------+------------------+--------------+--------------+----------------+
 
-*Table 2.*
-~~~~~~~~~~
-
-*Comparison of numbers of DIA sources detected in DECam image difference
-run with decorrelation turned on or off, and with a 5.5-* :math:`\sigma`
-*or 5.0-* :math:`\sigma` *detection threshold.*
+ Table 2. Comparison of numbers of DIA sources detected in DECam image difference run with decorrelation turned on or off, and with a 5.5-\ :math:`\sigma` or 5.0-\ :math:`\sigma` detection threshold.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We matched the catalogs of detections between the uncorrected
 ("undecorrelated") and decorrelated image differences (to within
@@ -560,39 +540,37 @@ that the detections in the decorrelated image difference are now nicely
 tracking just at or above the :math:`5\sigma` threshold.
 
 .. figure:: _static/fig_10b.png
-   :alt: 
+   :name: figure-10
 
-*Figure 10.*
-~~~~~~~~~~~~
+   As in Figure 6 from `Slater, et al.
+   (2016) <http://dmtn-006.lsst.io/#forcephot-sci-template-v197367>`__:
+   PSF photometry in the template and science exposures, forced on the
+   positions of DIA source detections in the image difference following
+   image difference decorrelation. The parallel diagonal lines denote
+   science−template\* :math:`>5\sqrt{2}\sigma` and science−template
+   :math:`< 5\sqrt{2}\sigma`, which are the intended criteria for
+   detection. The numerous detections just at or below these detection
+   thresholds have been eliminated, and (ignoring the two clouds of
+   detections near (0, 0) and (-2.5, 2.5)) the primary detections are
+   above (or below) the detection thresholds. Sources have not been
+   filtered to remove false detections (e.g., dipoles).
 
-*As in Figure 6 from* `Slater, et al.
-(2016) <http://dmtn-006.lsst.io/#forcephot-sci-template-v197367>`__\ *:
-PSF photometry in the template and science exposures, forced on the
-positions of DIA source detections in the image difference following
-image difference decorrelation. The parallel diagonal lines denote
-science−template* :math:`>5\sqrt{2}\sigma` *and science−template*
-:math:`< 5\sqrt{2}\sigma`, *which are the intended criteria for
-detection. The numerous detections just at or below these detection
-thresholds have been eliminated, and (ignoring the two clouds of
-detections near (0, 0) and (-2.5, 2.5)) the primary detections are above
-(or below) the detection thresholds. Sources have not been filtered to
-remove false detections (e.g., dipoles).*
+.. figure:: _static/fig11a.png
+   :name: 
 
-|image6| |image7|
+.. figure:: _static/fig11b.png
+   :name: figure-11
 
-*Figure 11.*
-~~~~~~~~~~~~
-
-*As in Figure 7 from* `Slater, et al.
-(2016) <http://dmtn-006.lsst.io//#forcephot-hists>`__\ *: Comparison of
-force photometry SNR (red) versus the SNR in image difference (blue) for
-all sources in a single DECam exposure. The black line shows the
-expected detection counts from random noise* (`Slater, et al.
-(2016) <http://dmtn-006.lsst.io/>`__). *The left figure is for
-uncorrected image difference (identical to* `Slater, et al.
-(2016) <http://dmtn-006.lsst.io//#forcephot-hists>`__). *The right is
-the same but for sources detected at* 5-\ :math:`\sigma` *in the
-decorrelated image difference.*
+   As in Figure 7 from `Slater, et al.
+   (2016) <http://dmtn-006.lsst.io//#forcephot-hists>`__: Comparison of
+   force photometry SNR (red) versus the SNR in image difference (blue)
+   for all sources in a single DECam exposure. The black line shows the
+   expected detection counts from random noise (`Slater, et al.
+   (2016) <http://dmtn-006.lsst.io/>`__). The left figure is for
+   uncorrected image difference (identical to `Slater, et al.
+   (2016) <http://dmtn-006.lsst.io//#forcephot-hists>`__). The right is
+   the same but for sources detected at\* 5-\ :math:`\sigma` \*in the
+   decorrelated image difference.
 
 4. Conclusions and future work
 ==============================
@@ -759,12 +737,3 @@ scripts using the new decorrelation code in the stack.
 =============
 
 Some references are going to go here. Perhaps.
-
-.. |Matching kernel| image:: _static/img1.png
-.. |Correction kernel| image:: _static/img2.png
-.. |Covariance matrix 1| image:: _static/img5.png
-.. |Covariance matrix 2| image:: _static/img6.png
-.. |image4| image:: _static/img9.png
-.. |image5| image:: _static/img10.png
-.. |image6| image:: _static/fig11a.png
-.. |image7| image:: _static/fig11b.png
