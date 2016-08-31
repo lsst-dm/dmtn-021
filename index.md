@@ -74,11 +74,9 @@ When we convolve $\phi$ ([Figure 2](#figure-2), right panel) with the raw image 
 | Corrected   | 0.0778    |  0.300       |
 | Original    | 0.0449    |  0.793       |
 | Expected    | 0.0800    |  0.004       |
-| Zackay, et al. (2016) | 0.987$^*$ | 0.301   |
+| Zackay, et al. (2016) | 0.0790$^*$ | 0.301   |
 
-###### <a name="table-1"></a> Table 1. Image difference statistics.
-
-Variances and neighbor-pixel covariances for image differences derived from two images each with input Gaussian noise with a standard deviation of 0.2 (variance of 0.04). $^*$Note that the [Zackay, et al. (2016)][ZOGY] procedure intrinsically normalizes the image difference to have unit variance. The measure of covariance is actually the sum of off-diagonal terms divided by the sum of the diagonal terms (and should equal 0 for a perfectly diagonal matrix).
+###### <a name="table-1"></a> Table 1. Image difference statistics. Variances and neighbor-pixel covariances for image differences derived from two images each with input Gaussian noise with a standard deviation of 0.2 (variance of 0.04). $^*$Note that the [Zackay, et al. (2016)][ZOGY] procedure intrinsically normalizes the image difference to have unit variance; we have adjusted it to have the same scaling as our method. The measure of covariance is actually the sum of off-diagonal terms divided by the sum of the diagonal terms (and should equal 0 for a perfectly diagonal matrix).
 
 <!--
 ```python

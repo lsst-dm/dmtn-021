@@ -281,29 +281,20 @@ the measured variances (`Table 1 <#table-1>`__) reveal that the variance
 of the uncorrected image difference was lower than expected, while the
 decorrelation has increased the variance to the expected level:
 
-+-------------------------+---------------------+--------------+
-|                         | Variance            | Covariance   |
-+=========================+=====================+==============+
-| Corrected               | 0.0778              | 0.300        |
-+-------------------------+---------------------+--------------+
-| Original                | 0.0449              | 0.793        |
-+-------------------------+---------------------+--------------+
-| Expected                | 0.0800              | 0.004        |
-+-------------------------+---------------------+--------------+
-| Zackay, et al. (2016)   | 0.987\ :math:`^*`   | 0.301        |
-+-------------------------+---------------------+--------------+
++-------------------------+----------------------+--------------+
+|                         | Variance             | Covariance   |
++=========================+======================+==============+
+| Corrected               | 0.0778               | 0.300        |
++-------------------------+----------------------+--------------+
+| Original                | 0.0449               | 0.793        |
++-------------------------+----------------------+--------------+
+| Expected                | 0.0800               | 0.004        |
++-------------------------+----------------------+--------------+
+| Zackay, et al. (2016)   | 0.0790\ :math:`^*`   | 0.301        |
++-------------------------+----------------------+--------------+
 
- Table 1. Image difference statistics.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Variances and neighbor-pixel covariances for image differences derived
-from two images each with input Gaussian noise with a standard deviation
-of 0.2 (variance of 0.04). :math:`^*`\ Note that the `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ procedure intrinsically
-normalizes the image difference to have unit variance. The measure of
-covariance is actually the sum of off-diagonal terms divided by the sum
-of the diagonal terms (and should equal 0 for a perfectly diagonal
-matrix).
+ Table 1. Image difference statistics. Variances and neighbor-pixel covariances for image differences derived from two images each with input Gaussian noise with a standard deviation of 0.2 (variance of 0.04). :math:`^*`\ Note that the `Zackay, et al. (2016) <https://arxiv.org/abs/1601.02655>`__ procedure intrinsically normalizes the image difference to have unit variance; we have adjusted it to have the same scaling as our method. The measure of covariance is actually the sum of off-diagonal terms divided by the sum of the diagonal terms (and should equal 0 for a perfectly diagonal matrix).
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
 
