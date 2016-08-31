@@ -107,7 +107,9 @@ image, which is convolved with :math:`\kappa`). The image difference
 technically, `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__
 estimates the :math:`\kappa` which minimizes the residuals in :math:`D`.
 As mentioned above, due to the convolution (:math:`\kappa \otimes I_2`),
-the noise in :math:`D` will be correlated.
+the noise in :math:`D` will be correlated. For a more complete
+derivation of the expressions shown below, please see `Appendix
+II. <#b-appendix-ii-derivation>`__
 
 2.1. Difference image decorrelation.
 ------------------------------------
@@ -367,27 +369,8 @@ procedure.
 
 We developed a basic implementation of the `Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__ "proper" image differencing
-procedure in order to compare image differences (see `Appendix 5.B. for
-details <#b-appendix-ii-implementation-of-basic-zackay-et-al-2016-algorithm>`__).
-Our implementation simply applies Equation (14) of `their
-manuscript <https://arxiv.org/abs/1601.02655>`__ to the two simulated
-reference (:math:`R`) and "new" (:math:`N`) images, providing their
-(known) PSFs :math:`P_r`, :math:`P_n` and variances :math:`\sigma_r^2`,
-:math:`\sigma_n^2`\ as to derive the proper difference image :math:`D`:
-
-Equation 3.
-~~~~~~~~~~~
-
-.. math::
-
-
-   \widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2}}.
-
-Here, :math:`F_r` and :math:`F_n` are the images' flux-based zero-points
-(which we will set to one here), and :math:`\widehat{D}` denotes the FT
-of :math:`D`. This expression is in Fourier space, and we inverse-FFT
-the image difference :math:`\widehat{D}` to obtain the final image
-:math:`D`.
+procedure in order to compare image differences (see `Appendix III. for
+details <#c-appendix-iii-implementation-of-basic-zackay-et-al-2016-algorithm>`__).
 
 As shown in `Table 1 <#table-1-image-difference-statistics>`__, many of
 the bulk statistics between image differences derived via the two
@@ -678,12 +661,96 @@ accurate and covariances will not be a concern.
    matter so long as we know that the variance plane gets handled
    correctly by the warping procedure.
 
-5.B. Appendix II. Implementation of basic Zackay et al. (2016) algorithm.
--------------------------------------------------------------------------
+5.B. Appendix II. Derivation
+----------------------------
+
+Starting with the
+`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ expression,
+
+.. math::
+
+
+   D = I_1 - (\kappa \otimes I_2),
+
+where :math:`I_1` is the science image with PSF :math:`\phi_1`. The
+model is that the true sky scene :math:`D` is convolved with
+:math:`\phi_1`, so if we assume Gaussian, heteroschedastic noise (sky
+noise-limited), take a Fourier Transform, and compute the
+log-likelihood, we obtain
+
+.. math::
+
+
+   ln~\mathcal{L} = \sum_k{\frac{(I_1(k)-\kappa(k)I_2(k)-D(k)\phi_1(k))^2}{\overline\sigma^2_1+\kappa^2(k)\overline{\sigma}^2_2}}.
+
+Then the MLE for :math:`D(k)` is
+
+.. math::
+
+
+   \hat{D}(k) = \frac{I_1(k)-\kappa(k)I_2(k)}{\phi_1(k)},
+
+with variance
+
+.. math::
+
+
+   \mathrm{Var}(\hat{D}(k)) = \frac{\overline\sigma^2_1+\kappa^2(k)\overline\sigma^2_2}{\phi^2_1(k)}.
+
+The variance diverges at large :math:`k` as :math:`\phi_1^2(k)`
+approaches zero, but (as shown by Kaiser (2004) and `Zackay, et al.
+(2016) <https://arxiv.org/abs/1601.02655>`__) we can flatten the
+spectrum ("whiten the noise") to obtain the expression in `Equation
+1 <#equation-1$>`__, which we will repeat here:
+
+.. math::
+
+
+   D(k) = \big[ I_1(k) - \kappa(k) I_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}
+
+To compare this calculation to the `Zackay, et al.
+(2016) <https://arxiv.org/abs/1601.02655>`__ "proper image subtraction"
+expression, we take the `Zackay, et al.
+(2016) <https://arxiv.org/abs/1601.02655>`__ assumption that
+:math:`\phi_1` and :math:`\phi_2` are known, and thus
+:math:`\kappa(k)=\phi_1(k)/\phi_2(k)`. Substituting this into `Equation
+1 <#equation-1>`__ gives us:
+
+.. math::
+
+
+   D(k) = \big[ \phi_2(k)I_1(k) - \phi_1(k) I_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2\phi_2^2(k) + \overline{\sigma}_2^2\phi_1^2(k)}},
+
+which is identical to Equation (13) in `Zackay, et al.
+(2016) <https://arxiv.org/abs/1601.02655>`__ (`Equation
+3 <#equation-3>`__ below), except for an additional factor
+:math:`\sqrt{\overline{\sigma}_1^2 + \overline{\sigma}_2^2}`.
+
+5.C. Appendix III. Implementation of basic Zackay et al. (2016) algorithm.
+--------------------------------------------------------------------------
 
 We applied the basic `Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__ procedure only to a set of
-small, simulated images.
+small, simulated images. Our implementation simply applies Equation (14)
+of `their manuscript <https://arxiv.org/abs/1601.02655>`__ to the two
+simulated reference (:math:`R`) and "new" (:math:`N`) images, providing
+their (known) PSFs :math:`P_r`, :math:`P_n` and variances
+:math:`\sigma_r^2`, :math:`\sigma_n^2`\ as to derive the proper
+difference image :math:`D`:
+
+Equation 3.
+~~~~~~~~~~~
+
+.. math::
+
+
+   \widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2}}.
+
+Here, :math:`F_r` and :math:`F_n` are the images' flux-based zero-points
+(which we will set to one here), and :math:`\widehat{D}` denotes the FT
+of :math:`D`. This expression is in Fourier space, and we inverse-FFT
+the image difference :math:`\widehat{D}` to obtain the final image
+:math:`D`.
 
 .. code:: python
 
@@ -701,8 +768,8 @@ small, simulated images.
         D = ifftshift(d.real)
         return D
 
-5.C. Appendix III. Notebooks and code
--------------------------------------
+5.D. Appendix IV. Notebooks and code
+------------------------------------
 
 All figures in this document were generated using IPython notebooks and
 associated code in `the diffimTests github
