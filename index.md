@@ -7,13 +7,13 @@
 
 # Abstract
 
-Herein, we describe a method for decorrelating image differences produced by the [Alard & Lupton (1998)][ALref] method of PSF matching. Inspired by the recent work of [Zackay, et al. (2016)][ZOGY] and the prior work of Kaiser (2004), "PSDC-002-011-xx: Addition of Images with Varying Seeing", this proposed method uses a single post-subtraction convolution of an image difference to remove the neighboring pixel covariances in the image difference that result from the convolution of the template image by the PSF matching kernel. We describe the method in detail, analyze its effects on image differences (both real and simulated) as well as on detections and photometry of detected sources in decorrelated image differences. We also compare the decorrelated image differences with those resulting from a basic implementation of [Zackay, et al. (2016)][ZOGY]. We describe the implementation of the new correction in the LSST image differencing pipeline, and discuss potential issues and areas of future research.
+Herein, we describe a method for decorrelating image differences produced by the [Alard & Lupton (1998)][ALref] method of PSF matching. Inspired by the recent work of [Zackay, et al. (2016)][ZOGY] and the prior work of [Kaiser (2004)](#references), this proposed method uses a single post-subtraction convolution of an image difference to remove the neighboring pixel covariances in the image difference that result from the convolution of the template image by the PSF matching kernel. We describe the method in detail, analyze its effects on image differences (both real and simulated) as well as on detections and photometry of detected sources in decorrelated image differences. We also compare the decorrelated image differences with those resulting from a basic implementation of [Zackay, et al. (2016)][ZOGY]. We describe the implementation of the new correction in the LSST image differencing pipeline, and discuss potential issues and areas of future research.
 
 # 1. Introduction
 
 Image subtraction analysis, also referred to as "difference image analysis", or "DIA", is the standard method for identifying and measuring transients and variables in astronomical images. In DIA, a science image is subtracted from a template image (hereafter, simply, "template"), in order to identify transients from either image. In the LSST stack (and most other existing transient detection pipelines), optimal image subtraction is enabled through point spread function (PSF) matching via the method of [Alard & Lupton (1998)][ALref] (hereafter *A&L*) (also, [Alard, 2000](http://aas.aanda.org/articles/aas/pdf/2000/11/ds8706.pdf])). This procedure is used to estimate a convolution kernel which, when convolved with the template, matches the PSF of the template with that of the science image by minimizing the mean squared difference between the matched template and science image, given the assumption of no variability between the two. The [A&L][ALref] procedure uses linear basis functions, with potentially spatially-varying linear coefficients, to model the potentially spatially-varying matching kernel which can flexibly account for spatially-varying differences in PSFs between the two images, as well as a spatially-varying differential background. The algorithm has the advantage that it does not require direct measurement of the images' PSFs. Instead it only needs to model the differential (potentially spatially-varying) matching kernel in order to obtain an optimal subtraction. Additionally it does not require performing a Fourier transform of the exposures; thus no issues arise with handling masked pixels and other artifacts.
 
-Image subtraction using the [A&L][ALref] method produces an optimal difference image in the case of a noise-less template. However, when the template is noisy (*e.g.*, when the template is comprised of a small number of co-adds), then its convolution with the matching kernel leads to significant covariance of noise among neighboring pixels within the resulting subtracted image, which will adversely affect accurate detection and measurement if not accounted for ([Slater, et al. (2016)](http://dmtn-006.lsst.io); Price & Magnier (2004), "Pan-STARRS Image Processing Pipeline: PSF-Matching for Subtraction and Stacking"). False detections in this case can be reduced by tracking the covariance matrix, or more *ad-hoc*, increasing the detection threshold (as is the current implementation, where detection is performed at 5.5-$\sigma$ rather than the canonical 5.0-$\sigma$). 
+Image subtraction using the [A&L][ALref] method produces an optimal difference image in the case of a noise-less template. However, when the template is noisy (*e.g.*, when the template is comprised of a small number of co-adds), then its convolution with the matching kernel leads to significant covariance of noise among neighboring pixels within the resulting subtracted image, which will adversely affect accurate detection and measurement if not accounted for ([Slater, et al. (2016)](http://dmtn-006.lsst.io); [Price & Magnier (2004)](#references)). False detections in this case can be reduced by tracking the covariance matrix, or more *ad-hoc*, increasing the detection threshold (as is the current implementation, where detection is performed at 5.5-$\sigma$ rather than the canonical 5.0-$\sigma$). 
 
 While LSST will, over its ten-year span, collect dozens of observations per field and passband, at the onset of the survey, this number will be small enough that this issue of noisy templates will be important. Moreover, if we intend to bin templates by airmass to account for differential chromatic refraction (DCR), then the total number of coadds contributing to each template will necessarily be smaller. Finally, depending upon the flavor of coadd ([Bosch, 2016](http://dmtn-015.lsst.io)) used to construct the template, template noise and the resulting covariances in the image difference will be more or less of an issue as the survey progresses.
 
@@ -25,7 +25,7 @@ The goal of PSF matching via [A&L][ALref] is to estimate the kernel $\kappa$ tha
 
 ## 2.1. Difference image decorrelation.
 
-An algorithm developed by Kaiser (2004), "PSDC-002-011-xx: Addition of Images with Varying Seeing." and later rediscovered by [Zackay, et al. (2015)](http://arxiv.org/abs/1512.06879) showed that the noise in a PSF-matched coadd image can be decorrelated via noise whitening (i.e. flattening the noise spectrum). The same principle may also be applied to image differencing ([Zackay, et al. (2016)][ZOGY]). In the case of [A&L][ALref] PSF matching, this results in an image difference in Fourier space $\widehat{D}(k)$: 
+An algorithm developed by [Kaiser (2004)](#references) and later rediscovered by [Zackay, et al. (2015)](http://arxiv.org/abs/1512.06879) showed that the noise in a PSF-matched coadd image can be decorrelated via noise whitening (i.e. flattening the noise spectrum). The same principle may also be applied to image differencing ([Zackay, et al. (2016)][ZOGY]). In the case of [A&L][ALref] PSF matching, this results in an image difference in Fourier space $\widehat{D}(k)$: 
 
 ###### *Equation 1.*
 $$
@@ -219,7 +219,7 @@ $$
 \mathrm{Var}(\hat{D}(k)) = \frac{\overline\sigma^2_1+\kappa^2(k)\overline\sigma^2_2}{\phi^2_1(k)}.
 $$
 
-The variance diverges at large $k$ as $\phi_1^2(k)$ approaches zero, but (as shown by Kaiser (2004) and [Zackay, et al. (2016)][ZOGY]) we can flatten the spectrum ("whiten the noise") to obtain the expression in [Equation 1](#equation-1$), which we will repeat here:
+The variance diverges at large $k$ as $\phi_1^2(k)$ approaches zero, but (as shown by [Kaiser (2004)](#references) and [Zackay, et al. (2016)][ZOGY]) we can flatten the spectrum ("whiten the noise") to obtain the expression in [Equation 1](#equation-1$), which we will repeat here:
 
 $$
 D(k) = \big[ I_1(k) - \kappa(k) I_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}
@@ -272,5 +272,7 @@ We would like to thank C. Slater for re-running his DECam image analysis scripts
 
 # 7. References
 
-Some references are going to go here. Perhaps.
+Details on references to unpublished works:
 
+1. Kaiser (2004), PSDC-002-01[01]-00: Addition of Images with Varying Seeing
+2. Price & Magnier (2004), “Pan-STARRS Image Processing Pipeline: PSF-Matching for Subtraction and Stacking”

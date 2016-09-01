@@ -14,15 +14,15 @@ produced by the `Alard & Lupton
 (1998) <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ method of
 PSF matching. Inspired by the recent work of `Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__ and the prior work of
-Kaiser (2004), "PSDC-002-011-xx: Addition of Images with Varying
-Seeing", this proposed method uses a single post-subtraction convolution
-of an image difference to remove the neighboring pixel covariances in
-the image difference that result from the convolution of the template
-image by the PSF matching kernel. We describe the method in detail,
-analyze its effects on image differences (both real and simulated) as
-well as on detections and photometry of detected sources in decorrelated
-image differences. We also compare the decorrelated image differences
-with those resulting from a basic implementation of `Zackay, et al.
+`Kaiser (2004) <#references>`__, this proposed method uses a single
+post-subtraction convolution of an image difference to remove the
+neighboring pixel covariances in the image difference that result from
+the convolution of the template image by the PSF matching kernel. We
+describe the method in detail, analyze its effects on image differences
+(both real and simulated) as well as on detections and photometry of
+detected sources in decorrelated image differences. We also compare the
+decorrelated image differences with those resulting from a basic
+implementation of `Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__. We describe the
 implementation of the new correction in the LSST image differencing
 pipeline, and discuss potential issues and areas of future research.
@@ -66,9 +66,8 @@ is comprised of a small number of co-adds), then its convolution with
 the matching kernel leads to significant covariance of noise among
 neighboring pixels within the resulting subtracted image, which will
 adversely affect accurate detection and measurement if not accounted for
-(`Slater, et al. (2016) <http://dmtn-006.lsst.io>`__; Price & Magnier
-(2004), "Pan-STARRS Image Processing Pipeline: PSF-Matching for
-Subtraction and Stacking"). False detections in this case can be reduced
+(`Slater, et al. (2016) <http://dmtn-006.lsst.io>`__; `Price & Magnier
+(2004) <#references>`__). False detections in this case can be reduced
 by tracking the covariance matrix, or more *ad-hoc*, increasing the
 detection threshold (as is the current implementation, where detection
 is performed at 5.5-\ :math:`\sigma` rather than the canonical
@@ -114,8 +113,8 @@ II. <#b-appendix-ii-derivation>`__
 2.1. Difference image decorrelation.
 ------------------------------------
 
-An algorithm developed by Kaiser (2004), "PSDC-002-011-xx: Addition of
-Images with Varying Seeing." and later rediscovered by `Zackay, et al.
+An algorithm developed by `Kaiser (2004) <#references>`__ and later
+rediscovered by `Zackay, et al.
 (2015) <http://arxiv.org/abs/1512.06879>`__ showed that the noise in a
 PSF-matched coadd image can be decorrelated via noise whitening (i.e.
 flattening the noise spectrum). The same principle may also be applied
@@ -698,10 +697,10 @@ with variance
    \mathrm{Var}(\hat{D}(k)) = \frac{\overline\sigma^2_1+\kappa^2(k)\overline\sigma^2_2}{\phi^2_1(k)}.
 
 The variance diverges at large :math:`k` as :math:`\phi_1^2(k)`
-approaches zero, but (as shown by Kaiser (2004) and `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__) we can flatten the
-spectrum ("whiten the noise") to obtain the expression in `Equation
-1 <#equation-1$>`__, which we will repeat here:
+approaches zero, but (as shown by `Kaiser (2004) <#references>`__ and
+`Zackay, et al. (2016) <https://arxiv.org/abs/1601.02655>`__) we can
+flatten the spectrum ("whiten the noise") to obtain the expression in
+`Equation 1 <#equation-1$>`__, which we will repeat here:
 
 .. math::
 
@@ -794,4 +793,9 @@ scripts using the new decorrelation code in the stack.
 7. References
 =============
 
-Some references are going to go here. Perhaps.
+Details on references to unpublished works:
+
+1. Kaiser (2004), PSDC-002-01[01]-00: Addition of Images with Varying
+   Seeing
+2. Price & Magnier (2004), “Pan-STARRS Image Processing Pipeline:
+   PSF-Matching for Subtraction and Stacking”
