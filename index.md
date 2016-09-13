@@ -25,33 +25,40 @@ The goal of PSF matching via [A&L][ALref] is to estimate the kernel $\kappa$ tha
 
 ## 2.1. Difference image decorrelation.
 
-An algorithm developed by [Kaiser (2004)](#references) and later rediscovered by [Zackay, et al. (2015)](http://arxiv.org/abs/1512.06879) showed that the noise in a PSF-matched coadd image can be decorrelated via noise whitening (i.e. flattening the noise spectrum). The same principle may also be applied to image differencing ([Zackay, et al. (2016)][ZOGY]). In the case of [A&L][ALref] PSF matching, this results in an image difference in Fourier space $\widehat{D}(k)$: 
+An algorithm developed by [Kaiser (2004)](#references) and later rediscovered by [Zackay, et al. (2015)](http://arxiv.org/abs/1512.06879) showed that the noise in a PSF-matched coadd image can be decorrelated via noise whitening (i.e. flattening the noise spectrum). The same principle may also be applied to image differencing ([Zackay, et al. (2016)][ZOGY]). In the case of [A&L][ALref] PSF matching, this results in an image difference in Fourier space $D(k)$: 
 
 ###### *Equation 1.*
 $$
-\widehat{D}(k) = \big[ \widehat{I}_1(k) - \widehat{\kappa}(k) \widehat{I}_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \widehat{\kappa}^2(k) \overline{\sigma}_2^2}}
+D(k) = \big[ I_1(k) - \kappa(k) I_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}
 $$
 
-Here, $\overline{\sigma}_i^2$ is the mean of the per-pixel variances of image $I_i$ -- i.e., $\overline{\sigma}_i^2 = \frac{\sum_{x,y} \sigma_i^2(x,y)}{N_{x,y}}$. Thus, we may perform PSF matching to estimate $\kappa$ by standard methods (e.g., [A&L][ALref] and related methods) and then correct for the noise in the template via [Eq. 1](#equation-1). The term in the square-root of [Eq. 1](#equation-1) is a *post-subtraction convolution kernel*, or decorrelation kernel $\widehat{\phi}(k)$, 
+Here, $X(k)$ denotes the FFT of $X$; $\overline{\sigma}_i^2$ is the mean of the per-pixel variances of image $I_i$ -- i.e., $\overline{\sigma}_i^2 = \frac{\sum_{x,y} \sigma_i^2(x,y)}{N_{x,y}}$. Thus, we may perform PSF matching to estimate $\kappa$ by standard methods (e.g., [A&L][ALref] and related methods) and then correct for the noise in the template via [Eq. 1](#equation-1). The term in the square-root of [Eq. 1](#equation-1) is a *post-subtraction convolution kernel*, or decorrelation kernel $\phi(k)$, 
 
 ###### *Equation 2.*
 $$
-\widehat{\phi}(k) = \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \widehat{\kappa}^2(k) \overline{\sigma}_2^2}},
+\phi(k) = \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}},
 $$
 
 which is convolved with the image difference, and has the effect of decorrelating the noise in the image difference that was introduced by convolution of $I_2$ with the [A&L][ALref] PSF matching kernel $\kappa$. It also (explicitly) contains an extra factor of $\sqrt{\overline{\sigma}_1^2+\overline{\sigma}_2^2}$, which sets the overall adjusted variance of the noise of the image difference (in contrast to the unit variance set by the algorithm proposed by [Zackay, et al. (2016)][ZOGY]). 
 
 ## 2.2. Implementation details
 
-Since the current implementation of [A&L][ALref] is performed in (real) image space, we implement the image decorrelation in image space as well. The *post-subtraction convolution kernel* $\widehat{\phi}(k)$ is computed in frequency space from $\widehat{\kappa}(k)$, $\overline{\sigma}_1$, and $\overline{\sigma}_2$ ([Equation 2](#equation-2)), and is inverse Fourier-transformed to a kernel $\phi$ in real space. The image difference is then convolved with $\phi$ to obtain the decorrelated image difference, $D^\prime = \phi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]$. This allows us to circumvent *FT*-ing the two exposures $I_1$ and $I_2$, which could lead to artifacts due to masked and/or bad pixels. Finally, the resulting PSF of $D^\prime$, important for detection and measurement of `DIA sources`, is simply the convolution of the PSF of $D$ with $\phi$.
+Since the current implementation of [A&L][ALref] is performed in (real) image space, we implement the image decorrelation in image space as well. The *post-subtraction convolution kernel* $\phi(k)$ is computed in frequency space from $\kappa(k)$, $\overline{\sigma}_1$, and $\overline{\sigma}_2$ ([Equation 2](#equation-2)), and is inverse Fourier-transformed to a kernel $\phi$ in real space. The image difference is then convolved with $\phi$ to obtain the decorrelated image difference, $D^\prime = \phi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]$. This allows us to circumvent *FT*-ing the two exposures $I_1$ and $I_2$, which could lead to artifacts due to masked and/or bad pixels. Finally, the resulting PSF of $D^\prime$, important for detection and measurement of `DIA sources`, is simply the convolution of the PSF of $D$ with $\phi$.
 
 ## 2.3. Comparison of diffim decorrelation and Zackay, et al. (2016).
 
-The decorrelation strategy described above is basically an "afterburner" correction to the standard image differencing algorithm which has been in wide use for over a decade. Thus it was relatively straightforward to integrate directly into the LSST image differencing (`ip_diffim`) pipeline. It maintains the advantages described previously that are implicit to the [A&L][ALref] algorithm: the PSFs of $I_1$ and $I_2$ do not need to be measured, and spatial variations in PSFs may be readily accounted for. The decorrelation can be relatively inexpensive, as it requires one *FFT* of $\kappa$ and one *inverse-FFT* of $\widehat{\phi}(k)$ (which are both small, of order 1,000 pixels), followed by one convolution of the difference image. Image masks are maintained, and the variance plane in the decorrelated image difference is also adjusted to the correct variance.
+The decorrelation strategy described above is basically an "afterburner" correction to the standard image differencing algorithm which has been in wide use for over a decade. Thus it was relatively straightforward to integrate directly into the LSST image differencing (`ip_diffim`) pipeline. It maintains the advantages described previously that are implicit to the [A&L][ALref] algorithm: the PSFs of $I_1$ and $I_2$ do not need to be measured, and spatial variations in PSFs may be readily accounted for. The decorrelation can be relatively inexpensive, as it requires one *FFT* of $\kappa$ and one *inverse-FFT* of $\phi(k)$ (which are both small, of order 1,000 pixels), followed by one convolution of the difference image. Image masks are maintained, and the variance plane in the decorrelated image difference is also adjusted to the correct variance.
 
 The decorrelation proposal is quite distinct from the image differencing method proposed by [Zackay, et al. (2016)][ZOGY], which involves FFT-ing the two input images and their PSFs. It also requires accurate measurements of PSFs of the two images, including any bulk astrometric offsets (which would be incorporated into the PSFs). It is not clear how information in the images' variance planes would be propagated to the final image difference (although theoretically, the two variance planes could simply be added).
 
-Of note, the [Zackay, et al. (2016)][ZOGY] procedure is symmetric in $I_1$ and $I_2$ (e.g., it does not explicitly require $I_1$ to have a broader PSF than $I_2$), whereas the standard [A&L][ALref] is not. (Deconvolution of the template, or "pre-convolution" of the science image are possible methods to address this concern with [A&L][ALref].) It was also claimed by the authors that the [Zackay, et al. (2016)][ZOGY] procedure produces cleaner image subtractions in cases of (1) perpendicular-oriented PSFs and (2) astrometric jitter. This claim has yet to be investigated thoroughly using the LSST [A&L][ALref] implementation.
+Of note, the [Zackay, et al. (2016)][ZOGY] procedure is symmetric in $I_1$ and $I_2$ (e.g., it does not explicitly require $I_1$ to have a broader PSF than $I_2$), whereas the standard [A&L][ALref] is not. Deconvolution of the template, or "pre-convolution" of the science image are possible methods to address this concern with [A&L][ALref]. In this case, we convolve the science image $I_1$ with the "pre-conditioning" kernel $M$, and the decorrelated image difference is then:
+
+###### *Equation 3.*
+$$
+D(k) = \big[ M(k)I_1(k) - \kappa(k) I_2(k) \big] \sqrt{\frac{\overline{\sigma}_1^2 + \overline{\sigma}_2^2}{M^2(k)\overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}
+$$
+
+It was also claimed by the authors that the [Zackay, et al. (2016)][ZOGY] procedure produces cleaner image subtractions in cases of (1) perpendicular-oriented PSFs and (2) astrometric jitter. This claim has yet to be investigated thoroughly using the LSST [A&L][ALref] implementation. 
 
 # 3. Results
 
@@ -213,13 +220,13 @@ $$
 \hat{D}(k) = \frac{I_1(k)-\kappa(k)I_2(k)}{\phi_1(k)},
 $$
 
-with variance
+with noise given by variance
 
 $$
 \mathrm{Var}(\hat{D}(k)) = \frac{\overline\sigma^2_1+\kappa^2(k)\overline\sigma^2_2}{\phi^2_1(k)}.
 $$
 
-The variance diverges at large $k$ as $\phi_1^2(k)$ approaches zero, but (as shown by [Kaiser (2004)](#references) and [Zackay, et al. (2016)][ZOGY]) we can flatten the spectrum ("whiten the noise") to obtain the expression in [Equation 1](#equation-1$), which we will repeat here:
+The variance diverges at large $k$ as $\phi_1^2(k)$ approaches zero, but (as shown by [Kaiser (2004)](#references) and [Zackay, et al. (2016)][ZOGY]) we can flatten the noise spectrum ("whiten the noise") to obtain the expression in [Equation 1](#equation-1$), which we will repeat here:
 
 $$
 D(k) = \big[ I_1(k) - \kappa(k) I_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}
@@ -231,13 +238,13 @@ $$
 D(k) = \big[ \phi_2(k)I_1(k) - \phi_1(k) I_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2\phi_2^2(k) + \overline{\sigma}_2^2\phi_1^2(k)}},
 $$
 
-which is identical to Equation (13) in [Zackay, et al. (2016)][ZOGY] ([Equation 3](#equation-3) below), except for an additional factor $\sqrt{\overline{\sigma}_1^2 + \overline{\sigma}_2^2}$.
+which is identical to Equation (13) in [Zackay, et al. (2016)][ZOGY] ([Equation 4](#equation-3) below), except for an additional factor $\sqrt{\overline{\sigma}_1^2 + \overline{\sigma}_2^2}$.
 
 ### 5.C. Appendix III. Implementation of basic Zackay et al. (2016) algorithm.
 
 We applied the basic [Zackay, et al. (2016)][ZOGY] procedure only to a set of small, simulated images. Our implementation simply applies Equation (14) of [their manuscript][ZOGY] to the two simulated reference ($R$) and "new" ($N$) images, providing their (known) PSFs $P_r$, $P_n$ and variances $\sigma_r^2$, $\sigma_n^2$as to derive the proper difference image $D$:
 
-###### Equation 3.
+###### Equation 4.
 $$
 \widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2}}.
 $$

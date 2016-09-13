@@ -122,7 +122,7 @@ to image differencing (`Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__). In the case of
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ PSF
 matching, this results in an image difference in Fourier space
-:math:`\widehat{D}(k)`:
+:math:`D(k)`:
 
 *Equation 1.*
 ~~~~~~~~~~~~~
@@ -130,10 +130,11 @@ matching, this results in an image difference in Fourier space
 .. math::
 
 
-   \widehat{D}(k) = \big[ \widehat{I}_1(k) - \widehat{\kappa}(k) \widehat{I}_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \widehat{\kappa}^2(k) \overline{\sigma}_2^2}}
+   D(k) = \big[ I_1(k) - \kappa(k) I_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}
 
-Here, :math:`\overline{\sigma}_i^2` is the mean of the per-pixel
-variances of image :math:`I_i` -- i.e.,
+Here, :math:`X(k)` denotes the FFT of :math:`X`;
+:math:`\overline{\sigma}_i^2` is the mean of the per-pixel variances of
+image :math:`I_i` -- i.e.,
 :math:`\overline{\sigma}_i^2 = \frac{\sum_{x,y} \sigma_i^2(x,y)}{N_{x,y}}`.
 Thus, we may perform PSF matching to estimate :math:`\kappa` by standard
 methods (e.g.,
@@ -141,7 +142,7 @@ methods (e.g.,
 methods) and then correct for the noise in the template via `Eq.
 1 <#equation-1>`__. The term in the square-root of `Eq.
 1 <#equation-1>`__ is a *post-subtraction convolution kernel*, or
-decorrelation kernel :math:`\widehat{\phi}(k)`,
+decorrelation kernel :math:`\phi(k)`,
 
 *Equation 2.*
 ~~~~~~~~~~~~~
@@ -149,7 +150,7 @@ decorrelation kernel :math:`\widehat{\phi}(k)`,
 .. math::
 
 
-   \widehat{\phi}(k) = \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \widehat{\kappa}^2(k) \overline{\sigma}_2^2}},
+   \phi(k) = \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}},
 
 which is convolved with the image difference, and has the effect of
 decorrelating the noise in the image difference that was introduced by
@@ -167,13 +168,12 @@ et al. (2016) <https://arxiv.org/abs/1601.02655>`__).
 Since the current implementation of
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ is performed
 in (real) image space, we implement the image decorrelation in image
-space as well. The *post-subtraction convolution kernel*
-:math:`\widehat{\phi}(k)` is computed in frequency space from
-:math:`\widehat{\kappa}(k)`, :math:`\overline{\sigma}_1`, and
-:math:`\overline{\sigma}_2` (`Equation 2 <#equation-2>`__), and is
-inverse Fourier-transformed to a kernel :math:`\phi` in real space. The
-image difference is then convolved with :math:`\phi` to obtain the
-decorrelated image difference,
+space as well. The *post-subtraction convolution kernel* :math:`\phi(k)`
+is computed in frequency space from :math:`\kappa(k)`,
+:math:`\overline{\sigma}_1`, and :math:`\overline{\sigma}_2` (`Equation
+2 <#equation-2>`__), and is inverse Fourier-transformed to a kernel
+:math:`\phi` in real space. The image difference is then convolved with
+:math:`\phi` to obtain the decorrelated image difference,
 :math:`D^\prime = \phi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]`.
 This allows us to circumvent *FT*-ing the two exposures :math:`I_1` and
 :math:`I_2`, which could lead to artifacts due to masked and/or bad
@@ -194,10 +194,10 @@ implicit to the
 the PSFs of :math:`I_1` and :math:`I_2` do not need to be measured, and
 spatial variations in PSFs may be readily accounted for. The
 decorrelation can be relatively inexpensive, as it requires one *FFT* of
-:math:`\kappa` and one *inverse-FFT* of :math:`\widehat{\phi}(k)` (which
-are both small, of order 1,000 pixels), followed by one convolution of
-the difference image. Image masks are maintained, and the variance plane
-in the decorrelated image difference is also adjusted to the correct
+:math:`\kappa` and one *inverse-FFT* of :math:`\phi(k)` (which are both
+small, of order 1,000 pixels), followed by one convolution of the
+difference image. Image masks are maintained, and the variance plane in
+the decorrelated image difference is also adjusted to the correct
 variance.
 
 The decorrelation proposal is quite distinct from the image differencing
@@ -215,10 +215,22 @@ Of note, the `Zackay, et al.
 :math:`I_1` and :math:`I_2` (e.g., it does not explicitly require
 :math:`I_1` to have a broader PSF than :math:`I_2`), whereas the
 standard `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ is
-not. (Deconvolution of the template, or "pre-convolution" of the science
+not. Deconvolution of the template, or "pre-convolution" of the science
 image are possible methods to address this concern with
-`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__.) It was
-also claimed by the authors that the `Zackay, et al.
+`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__. In this
+case, we convolve the science image :math:`I_1` with the
+"pre-conditioning" kernel :math:`M`, and the decorrelated image
+difference is then:
+
+*Equation 3.*
+~~~~~~~~~~~~~
+
+.. math::
+
+
+   D(k) = \big[ M(k)I_1(k) - \kappa(k) I_2(k) \big] \sqrt{\frac{\overline{\sigma}_1^2 + \overline{\sigma}_2^2}{M^2(k)\overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}
+
+It was also claimed by the authors that the `Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__ procedure produces cleaner
 image subtractions in cases of (1) perpendicular-oriented PSFs and (2)
 astrometric jitter. This claim has yet to be investigated thoroughly
@@ -689,7 +701,7 @@ Then the MLE for :math:`D(k)` is
 
    \hat{D}(k) = \frac{I_1(k)-\kappa(k)I_2(k)}{\phi_1(k)},
 
-with variance
+with noise given by variance
 
 .. math::
 
@@ -699,8 +711,8 @@ with variance
 The variance diverges at large :math:`k` as :math:`\phi_1^2(k)`
 approaches zero, but (as shown by `Kaiser (2004) <#references>`__ and
 `Zackay, et al. (2016) <https://arxiv.org/abs/1601.02655>`__) we can
-flatten the spectrum ("whiten the noise") to obtain the expression in
-`Equation 1 <#equation-1$>`__, which we will repeat here:
+flatten the noise spectrum ("whiten the noise") to obtain the expression
+in `Equation 1 <#equation-1$>`__, which we will repeat here:
 
 .. math::
 
@@ -722,7 +734,7 @@ expression, we take the `Zackay, et al.
 
 which is identical to Equation (13) in `Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__ (`Equation
-3 <#equation-3>`__ below), except for an additional factor
+4 <#equation-3>`__ below), except for an additional factor
 :math:`\sqrt{\overline{\sigma}_1^2 + \overline{\sigma}_2^2}`.
 
 5.C. Appendix III. Implementation of basic Zackay et al. (2016) algorithm.
@@ -737,7 +749,7 @@ their (known) PSFs :math:`P_r`, :math:`P_n` and variances
 :math:`\sigma_r^2`, :math:`\sigma_n^2`\ as to derive the proper
 difference image :math:`D`:
 
-Equation 3.
+Equation 4.
 ~~~~~~~~~~~
 
 .. math::
