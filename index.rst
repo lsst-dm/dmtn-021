@@ -142,7 +142,7 @@ methods (e.g.,
 methods) and then correct for the noise in the template via `Eq.
 1 <#equation-1>`__. The term in the square-root of `Eq.
 1 <#equation-1>`__ is a *post-subtraction convolution kernel*, or
-decorrelation kernel :math:`\phi(k)`,
+decorrelation kernel :math:`\psi(k)`,
 
 *Equation 2.*
 ~~~~~~~~~~~~~
@@ -150,7 +150,7 @@ decorrelation kernel :math:`\phi(k)`,
 .. math::
 
 
-   \phi(k) = \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}},
+   \psi(k) = \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}},
 
 which is convolved with the image difference, and has the effect of
 decorrelating the noise in the image difference that was introduced by
@@ -168,18 +168,24 @@ et al. (2016) <https://arxiv.org/abs/1601.02655>`__).
 Since the current implementation of
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ is performed
 in (real) image space, we implement the image decorrelation in image
-space as well. The *post-subtraction convolution kernel* :math:`\phi(k)`
+space as well. The *post-subtraction convolution kernel* :math:`\psi(k)`
 is computed in frequency space from :math:`\kappa(k)`,
 :math:`\overline{\sigma}_1`, and :math:`\overline{\sigma}_2` (`Equation
 2 <#equation-2>`__), and is inverse Fourier-transformed to a kernel
-:math:`\phi` in real space. The image difference is then convolved with
-:math:`\phi` to obtain the decorrelated image difference,
-:math:`D^\prime = \phi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]`.
+:math:`\psi` in real space. The image difference is then convolved with
+:math:`\psi` to obtain the decorrelated image difference,
+:math:`D^\prime = \psi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]`.
 This allows us to circumvent *FT*-ing the two exposures :math:`I_1` and
 :math:`I_2`, which could lead to artifacts due to masked and/or bad
-pixels. Finally, the resulting PSF of :math:`D^\prime`, important for
-detection and measurement of ``DIA sources``, is simply the convolution
-of the PSF of :math:`D` with :math:`\phi`.
+pixels. Finally, the resulting PSF :math:`\phi_D` of :math:`D^\prime`,
+important for detection and measurement of ``DIA sources``, is simply
+the convolution of the PSF of :math:`D` (which equals the PSF
+:math:`\phi_1` of :math:`I_1` by definition) with :math:`\psi`:
+
+.. math::
+
+
+   \phi_D(k) = \phi_1(k) \psi(k).
 
 2.3. Comparison of diffim decorrelation and Zackay, et al. (2016).
 ------------------------------------------------------------------
@@ -194,7 +200,7 @@ implicit to the
 the PSFs of :math:`I_1` and :math:`I_2` do not need to be measured, and
 spatial variations in PSFs may be readily accounted for. The
 decorrelation can be relatively inexpensive, as it requires one *FFT* of
-:math:`\kappa` and one *inverse-FFT* of :math:`\phi(k)` (which are both
+:math:`\kappa` and one *inverse-FFT* of :math:`\psi(k)` (which are both
 small, of order 1,000 pixels), followed by one convolution of the
 difference image. Image masks are maintained, and the variance plane in
 the decorrelated image difference is also adjusted to the correct
@@ -216,10 +222,12 @@ Of note, the `Zackay, et al.
 :math:`I_1` to have a broader PSF than :math:`I_2`), whereas the
 standard `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ is
 not. Deconvolution of the template, or "pre-convolution" of the science
-image are possible methods to address this concern with
-`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__. In this
-case, we convolve the science image :math:`I_1` with the
-"pre-conditioning" kernel :math:`M`, and the decorrelated image
+image :math:`I_1` are possible methods to address this concern with
+`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__, *in the
+case where the PSF of* :math:`I_1` *is at most*
+:math:`\sim \sqrt{2}\times` *narrower than that of* :math:`I_2`. In this
+case, we convolve :math:`I_1` with a "pre-conditioning" kernel :math:`M`
+(typically, equal to the PSF of :math:`I_1`), and the decorrelated image
 difference is then:
 
 *Equation 3.*
@@ -229,6 +237,13 @@ difference is then:
 
 
    D(k) = \big[ M(k)I_1(k) - \kappa(k) I_2(k) \big] \sqrt{\frac{\overline{\sigma}_1^2 + \overline{\sigma}_2^2}{M^2(k)\overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}
+
+with PSF
+
+.. math::
+
+
+   \phi_D(k) = M(k)\phi_1(k) \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ M(k)^2 \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}.
 
 It was also claimed by the authors that the `Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__ procedure produces cleaner
@@ -266,8 +281,8 @@ PSF-matched template and resulting *diffim* is shown in `Figure
 
 In `Figure 2 <#figure-2>`__, we show the PSF matching kernel
 (:math:`\kappa`) that was estimated for the images shown in `Figure
-1 <#figure-1>`__, and the resulting decorrelation kernel, :math:`\phi`.
-We note that :math:`\phi` largely has the structure of a delta function,
+1 <#figure-1>`__, and the resulting decorrelation kernel, :math:`\psi`.
+We note that :math:`\psi` largely has the structure of a delta function,
 with a small region of negative signal, thus its capability, when
 convolved with the difference image, to act effectively as a
 "sharpening" kernel.
@@ -279,10 +294,10 @@ convolved with the difference image, to act effectively as a
    :name: figure-2
 
    Sample PSF matching kernel :math:`\kappa` (left) and resulting
-   decorrelation kernel :math:`\phi` (right) for the images shown in
+   decorrelation kernel :math:`\psi` (right) for the images shown in
    `Figure 1 <#figure-1>`__.
 
-When we convolve :math:`\phi` (`Figure 2 <#figure-2>`__, right panel)
+When we convolve :math:`\psi` (`Figure 2 <#figure-2>`__, right panel)
 with the raw image difference (`Figure 1 <#figure-1>`__, right-most
 panel), we obtain the decorrelated image, shown in the left-most panel
 of `Figure 3 <#figure-3>`__. The noise visually appears to be greater in
@@ -429,7 +444,7 @@ of the image, and estimates a constant image variance
 :math:`\overline{\sigma}_1^2` and :math:`\overline{\sigma}_2^2` for each
 image (sigma-clipped mean of its variance plane; in this example 62.8
 and 60.0 for the science and template images, respectively). The task
-then computes the decorrelation kernel :math:`\phi` from those three
+then computes the decorrelation kernel :math:`\psi` from those three
 quantities (`Figure 8 <#figure-8>`__). As expected, the resulting
 decorrelated image difference has a greater variance than the
 "uncorrected" image difference (120.8 vs. 66.8), and a value close to
@@ -581,10 +596,10 @@ There will be spatial variations across an image of the PSF matching
 kernel and the template- and science-image per-pixel variances (an
 example of the kernel variation is shown in `Figure 8 <#figure-8>`__).
 These three parameters separately will contribute to spatial variations
-in the decorrelation kernel :math:`\phi`, with unknown resulting
+in the decorrelation kernel :math:`\psi`, with unknown resulting
 second-order effects on the resulting decorrelated image. If these
 parameters are computed just for the center of the images (as they are,
-currently), then the resulting :math:`\phi` is only accurate for the
+currently), then the resulting :math:`\psi` is only accurate for the
 center of the image, and could lead to over/under-correction of the
 correlated noise nearer to the edges of the image difference. Another
 effect is that the resulting adjusted image difference PSF will also not
@@ -594,14 +609,14 @@ We explored the effect of spatial variations in all three of these
 parameters for a single example DECam CCD image subtraction. The PSF
 matching kernel for this image varies across the image (`Figure
 8 <#figure-8>`__), and thus so does the resulting decorrelation kernel,
-:math:`\phi`. Additionally, the noise (quantified in the variance planes
+:math:`\psi`. Additionally, the noise (quantified in the variance planes
 of the two exposures) varies across both the template and science images
 by :math:`\sim 1\%` (data not shown here, but see `this IPython
 notebook <https://github.com/lsst-dm/diffimTests/blob/master/19.%20check%20variance%20planes.ipynb>`__).
-We computed decorrelation kernels :math:`\phi_i` for the observed
+We computed decorrelation kernels :math:`\psi_i` for the observed
 extremes of each of these three parameters, and compared the resulting
 decorrelated image differences to the canonical decorrelated image
-difference derived using :math:`\phi` computed for the center of the
+difference derived using :math:`\psi` computed for the center of the
 images. The distribution of variances (sigma-clipped means of the
 variance plane) of the resulting decorrelated image differences differed
 by as much as :math:`\sim 5.6\%` at the extreme (:math:`\sim 1.3\%`
@@ -621,9 +636,9 @@ and constant image variances for diffim decorrelation will have a
 significant effect on LSST alert generation. It is clearly at most a
 second-order effect, with measurable uncertainties of order a few
 percent at most. If this uncertainty is deemed to high, then we will
-need to investigate computing :math:`\phi` on a grid across the image,
+need to investigate computing :math:`\psi` on a grid across the image,
 and (ideally) perform an interpolation to estimate a spatially-varying
-:math:`\phi(x,y)`.
+:math:`\psi(x,y)`.
 
 4.2. DIA Source measurement
 ---------------------------
@@ -701,7 +716,7 @@ Then the MLE for :math:`D(k)` is
 
    \hat{D}(k) = \frac{I_1(k)-\kappa(k)I_2(k)}{\phi_1(k)},
 
-with noise given by variance
+with noise having variance
 
 .. math::
 
