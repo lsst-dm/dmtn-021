@@ -206,23 +206,25 @@ difference image. Image masks are maintained, and the variance plane in
 the decorrelated image difference is also adjusted to the correct
 variance.
 
-The decorrelation proposal is quite distinct from the image differencing
+The decorrelation proposal has similarities to the image differencing
 method proposed by `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__, which involves FFT-ing the
-two input images and their PSFs. It also requires accurate measurements
-of PSFs of the two images, including any bulk astrometric offsets (which
-would be incorporated into the PSFs). It is not clear how information in
-the images' variance planes would be propagated to the final image
-difference (although theoretically, the two variance planes could simply
-be added).
+(2016) <https://arxiv.org/abs/1601.02655>`__ (hereafter, simply
+`ZOGY <https://arxiv.org/abs/1601.02655>`__, which involves FFT-ing the
+two input images and their PSFs. It also does not require accurate
+measurements of PSFs of the two images, while
+`ZOGY <https://arxiv.org/abs/1601.02655>`__ does, including any bulk
+astrometric offsets (which would be incorporated into the PSFs).
+`ZOGY <https://arxiv.org/abs/1601.02655>`__ instead incorporates
+estimates for the misestimation of PSFs and astrometry in the resulting
+variance planes.
 
-Of note, the `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ procedure is symmetric in
-:math:`I_1` and :math:`I_2` (e.g., it does not explicitly require
-:math:`I_1` to have a broader PSF than :math:`I_2`), whereas the
-standard `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ is
-not. Deconvolution of the template, or "pre-convolution" of the science
-image :math:`I_1` are possible methods to address this concern with
+Of note, due to its effective utility of PSF cross-correlation,
+`ZOGY <https://arxiv.org/abs/1601.02655>`__ is symmetric in :math:`I_1`
+and :math:`I_2` (e.g., it does not explicitly require :math:`I_1` to
+have a broader PSF than :math:`I_2`), whereas the standard
+`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ is not.
+Deconvolution of the template, or "pre-convolution" of the science image
+:math:`I_1` are possible methods to address this concern with
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__, *in the
 case where the PSF of* :math:`I_1` *is at most*
 :math:`\sim \sqrt{2}\times` *narrower than that of* :math:`I_2`. In this
@@ -245,13 +247,15 @@ with PSF
 
    \phi_D(k) = M(k)\phi_1(k) \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ M(k)^2 \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}.
 
-It was also claimed by the authors that the `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ procedure produces cleaner
+It was also claimed by the authors that
+`ZOGY <https://arxiv.org/abs/1601.02655>`__ procedure produces cleaner
 image subtractions in cases of (1) perpendicular-oriented PSFs and (2)
 astrometric jitter. This claim has yet to be investigated thoroughly
 using the LSST
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__
-implementation.
+implementation, although the effective deconvolution required by
+`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ in situation
+(1) does often lead to noticeable artifacts.
 
 3. Results
 ==========
@@ -309,20 +313,20 @@ the measured variances (`Table 1 <#table-1>`__) reveal that the variance
 of the uncorrected image difference was lower than expected, while the
 decorrelation has increased the variance to the expected level:
 
-+-------------------------+----------------------+--------------+
-|                         | Variance             | Covariance   |
-+=========================+======================+==============+
-| Corrected               | 0.0778               | 0.300        |
-+-------------------------+----------------------+--------------+
-| Original                | 0.0449               | 0.793        |
-+-------------------------+----------------------+--------------+
-| Expected                | 0.0800               | 0.004        |
-+-------------------------+----------------------+--------------+
-| Zackay, et al. (2016)   | 0.0790\ :math:`^*`   | 0.301        |
-+-------------------------+----------------------+--------------+
++-----------------------------------------------+----------------------+--------------+
+|                                               | Variance             | Covariance   |
++===============================================+======================+==============+
+| Corrected                                     | 0.0778               | 0.300        |
++-----------------------------------------------+----------------------+--------------+
+| Original                                      | 0.0449               | 0.793        |
++-----------------------------------------------+----------------------+--------------+
+| Expected                                      | 0.0800               | 0.004        |
++-----------------------------------------------+----------------------+--------------+
+| `ZOGY <https://arxiv.org/abs/1601.02655>`__   | 0.0790\ :math:`^*`   | 0.301        |
++-----------------------------------------------+----------------------+--------------+
 
- Table 1. Image difference statistics. Variances and neighbor-pixel covariances for image differences derived from two images each with input Gaussian noise with a standard deviation of 0.2 (variance of 0.04). :math:`^*`\ Note that the `Zackay, et al. (2016) <https://arxiv.org/abs/1601.02655>`__ procedure intrinsically normalizes the image difference to have unit variance; we have adjusted it to have the same scaling as our method. The measure of covariance is actually the sum of off-diagonal terms divided by the sum of the diagonal terms (and should equal 0 for a perfectly diagonal matrix).
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ Table 1. Image difference statistics. Variances and neighbor-pixel covariances for image differences derived from two images each with input Gaussian noise with a standard deviation of 0.2 (variance of 0.04). :math:`^*`\ Note that the `ZOGY <https://arxiv.org/abs/1601.02655>`__ procedure intrinsically normalizes the image difference to have unit variance; we have adjusted it to have the same scaling as our method. The measure of covariance is actually the sum of off-diagonal terms divided by the sum of the diagonal terms (and should equal 0 for a perfectly diagonal matrix).
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. raw:: html
 
@@ -348,8 +352,8 @@ with the decorrelation kernel. The covariance matrix has been
 significantly diagonalized. While the covariance of the decorrelated
 image might at first glance appear high relative to the random
 expectation, we show (below) that it is equal to the value obtained
-using a basic implementation of the `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ "proper" image subtraction
+using a basic implementation of the
+`ZOGY <https://arxiv.org/abs/1601.02655>`__ proper image subtraction
 procedure.
 
 .. raw:: html
@@ -390,13 +394,14 @@ procedure.
    image difference :math:`D` (left) and the decorrelated image
    difference :math:`D^\prime` (right) in `Figure 3 <#figure-3>`__.
 
-3.2. Comparison with Zackay, et al. (2016).
--------------------------------------------
+3.2. Comparison with ZOGY.
+--------------------------
 
 We developed a basic implementation of the `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ "proper" image differencing
-procedure in order to compare image differences (see `Appendix III. for
-details <#c-appendix-iii-implementation-of-basic-zackay-et-al-2016-algorithm>`__).
+(2016) <https://arxiv.org/abs/1601.02655>`__ proper image differencing
+procedure (`ZOGY <https://arxiv.org/abs/1601.02655>`__) in order to
+compare image differences (see `Appendix III. for
+details <#c-appendix-iii-implementation-of-basic-ZOGY-algorithm>`__).
 
 As shown in `Table 1 <#table-1-image-difference-statistics>`__, many of
 the bulk statistics between image differences derived via the two
@@ -581,9 +586,10 @@ We have shown that performing image difference decorrelation as an
 differences generated by the LSST stack is an effective method to
 eliminate most issues arising from the resulting per-pixel covariance in
 said images. We also showed that the resulting decorrelated image
-differences have similar statistical and noise properties to those
-generated using the "proper image subtraction" method recently proposed
-by `Zackay, et al. (2016) <https://arxiv.org/abs/1601.02655>`__.
+differences have similar statistical and noise properties, even in the
+case of a noisy template, to those generated using the "proper image
+subtraction" method recently proposed by `Zackay, et al.
+(2016) <https://arxiv.org/abs/1601.02655>`__.
 
 There still exist several outstanding issues or questions related to
 details of the decorrelation procedure as it is currently implemented in
@@ -734,10 +740,9 @@ in `Equation 1 <#equation-1$>`__, which we will repeat here:
 
    D(k) = \big[ I_1(k) - \kappa(k) I_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}
 
-To compare this calculation to the `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ "proper image subtraction"
-expression, we take the `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ assumption that
+To compare this calculation to the
+`ZOGY <https://arxiv.org/abs/1601.02655>`__ expression, we take the
+`ZOGY <https://arxiv.org/abs/1601.02655>`__ assumption that
 :math:`\phi_1` and :math:`\phi_2` are known, and thus
 :math:`\kappa(k)=\phi_1(k)/\phi_2(k)`. Substituting this into `Equation
 1 <#equation-1>`__ gives us:
@@ -752,8 +757,8 @@ which is identical to Equation (13) in `Zackay, et al.
 4 <#equation-3>`__ below), except for an additional factor
 :math:`\sqrt{\overline{\sigma}_1^2 + \overline{\sigma}_2^2}`.
 
-5.C. Appendix III. Implementation of basic Zackay et al. (2016) algorithm.
---------------------------------------------------------------------------
+5.C. Appendix III. Implementation of basic ZOGY algorithm.
+----------------------------------------------------------
 
 We applied the basic `Zackay, et al.
 (2016) <https://arxiv.org/abs/1601.02655>`__ procedure only to a set of
@@ -761,8 +766,8 @@ small, simulated images. Our implementation simply applies Equation (14)
 of `their manuscript <https://arxiv.org/abs/1601.02655>`__ to the two
 simulated reference (:math:`R`) and "new" (:math:`N`) images, providing
 their (known) PSFs :math:`P_r`, :math:`P_n` and variances
-:math:`\sigma_r^2`, :math:`\sigma_n^2`\ as to derive the proper
-difference image :math:`D`:
+:math:`\sigma_r^2`, :math:`\sigma_n^2` to derive the proper difference
+image :math:`D`:
 
 Equation 4.
 ~~~~~~~~~~~

@@ -53,9 +53,9 @@ $$
 
 The decorrelation strategy described above is basically an "afterburner" correction to the standard image differencing algorithm which has been in wide use for over a decade. Thus it was relatively straightforward to integrate directly into the LSST image differencing (`ip_diffim`) pipeline. It maintains the advantages described previously that are implicit to the [A&L][ALref] algorithm: the PSFs of $I_1$ and $I_2$ do not need to be measured, and spatial variations in PSFs may be readily accounted for. The decorrelation can be relatively inexpensive, as it requires one *FFT* of $\kappa$ and one *inverse-FFT* of $\psi(k)$ (which are both small, of order 1,000 pixels), followed by one convolution of the difference image. Image masks are maintained, and the variance plane in the decorrelated image difference is also adjusted to the correct variance.
 
-The decorrelation proposal is quite distinct from the image differencing method proposed by [Zackay, et al. (2016)][ZOGY], which involves FFT-ing the two input images and their PSFs. It also requires accurate measurements of PSFs of the two images, including any bulk astrometric offsets (which would be incorporated into the PSFs). It is not clear how information in the images' variance planes would be propagated to the final image difference (although theoretically, the two variance planes could simply be added).
+The decorrelation proposal has similarities to the image differencing method proposed by [Zackay, et al. (2016)][ZOGY] (hereafter, simply [ZOGY][ZOGY], which involves FFT-ing the two input images and their PSFs. It also does not require accurate measurements of PSFs of the two images, while [ZOGY][ZOGY] does, including any bulk astrometric offsets (which would be incorporated into the PSFs). [ZOGY][ZOGY] instead incorporates estimates for the misestimation of PSFs and astrometry in the resulting variance planes.
 
-Of note, the [Zackay, et al. (2016)][ZOGY] procedure is symmetric in $I_1$ and $I_2$ (e.g., it does not explicitly require $I_1$ to have a broader PSF than $I_2$), whereas the standard [A&L][ALref] is not. Deconvolution of the template, or "pre-convolution" of the science image $I_1$ are possible methods to address this concern with [A&L][ALref], *in the case where the PSF of* $I_1$ *is at most* $\sim \sqrt{2}\times$ *narrower than that of* $I_2$. In this case, we convolve $I_1$ with a "pre-conditioning" kernel $M$ (typically, equal to the PSF of $I_1$), and the decorrelated image difference is then:
+Of note, due to its effective utility of PSF cross-correlation, [ZOGY][ZOGY] is symmetric in $I_1$ and $I_2$ (e.g., it does not explicitly require $I_1$ to have a broader PSF than $I_2$), whereas the standard [A&L][ALref] is not. Deconvolution of the template, or "pre-convolution" of the science image $I_1$ are possible methods to address this concern with [A&L][ALref], *in the case where the PSF of* $I_1$ *is at most* $\sim \sqrt{2}\times$ *narrower than that of* $I_2$. In this case, we convolve $I_1$ with a "pre-conditioning" kernel $M$ (typically, equal to the PSF of $I_1$), and the decorrelated image difference is then:
 
 ###### *Equation 3.*
 $$
@@ -68,7 +68,7 @@ $$
 \phi_D(k) = M(k)\phi_1(k) \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ M(k)^2 \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}.
 $$
 
-It was also claimed by the authors that the [Zackay, et al. (2016)][ZOGY] procedure produces cleaner image subtractions in cases of (1) perpendicular-oriented PSFs and (2) astrometric jitter. This claim has yet to be investigated thoroughly using the LSST [A&L][ALref] implementation. 
+It was also claimed by the authors that [ZOGY][ZOGY] procedure produces cleaner image subtractions in cases of (1) perpendicular-oriented PSFs and (2) astrometric jitter. This claim has yet to be investigated thoroughly using the LSST [A&L][ALref] implementation, although the effective deconvolution required by [A&L][ALref] in situation (1) does often lead to noticeable artifacts.
 
 # 3. Results
 
@@ -91,9 +91,9 @@ When we convolve $\psi$ ([Figure 2](#figure-2), right panel) with the raw image 
 | Corrected   | 0.0778    |  0.300       |
 | Original    | 0.0449    |  0.793       |
 | Expected    | 0.0800    |  0.004       |
-| Zackay, et al. (2016) | 0.0790$^*$ | 0.301   |
+| [ZOGY][ZOGY] | 0.0790$^*$ | 0.301   |
 
-###### <a name="table-1"></a> Table 1. Image difference statistics. Variances and neighbor-pixel covariances for image differences derived from two images each with input Gaussian noise with a standard deviation of 0.2 (variance of 0.04). $^*$Note that the [Zackay, et al. (2016)][ZOGY] procedure intrinsically normalizes the image difference to have unit variance; we have adjusted it to have the same scaling as our method. The measure of covariance is actually the sum of off-diagonal terms divided by the sum of the diagonal terms (and should equal 0 for a perfectly diagonal matrix).
+###### <a name="table-1"></a> Table 1. Image difference statistics. Variances and neighbor-pixel covariances for image differences derived from two images each with input Gaussian noise with a standard deviation of 0.2 (variance of 0.04). $^*$Note that the [ZOGY][ZOGY] procedure intrinsically normalizes the image difference to have unit variance; we have adjusted it to have the same scaling as our method. The measure of covariance is actually the sum of off-diagonal terms divided by the sum of the diagonal terms (and should equal 0 for a perfectly diagonal matrix).
 
 <!--
 ```python
@@ -110,7 +110,7 @@ Expected:  0.282842712475
 ```
 -->
 
-In addition, we see ([Table 1](#table-1) and [Figure 5](#figure-5)) that the covariances between neighboring pixels in the image difference has been significantly decreased following convolution with the decorrelation kernel. The covariance matrix has been significantly diagonalized. While the covariance of the decorrelated image might at first glance appear high relative to the random expectation, we show (below) that it is equal to the value obtained using a basic implementation of the [Zackay, et al. (2016)][ZOGY] "proper" image subtraction procedure.
+In addition, we see ([Table 1](#table-1) and [Figure 5](#figure-5)) that the covariances between neighboring pixels in the image difference has been significantly decreased following convolution with the decorrelation kernel. The covariance matrix has been significantly diagonalized. While the covariance of the decorrelated image might at first glance appear high relative to the random expectation, we show (below) that it is equal to the value obtained using a basic implementation of the [ZOGY][ZOGY] proper image subtraction procedure.
 
 <!--
 ```python
@@ -131,9 +131,9 @@ print np.nansum(cov1)/np.sum(np.diag(cov1))  # cov1 is the covar. matrix of the 
 
 ![Covariance between neighboring pixels in the original, uncorrected image difference  $D$ (left) and the decorrelated image difference $D^\prime$ (right) in [Figure 3](#figure-3).](_static/img6.png "figure-5")
 
-## 3.2. Comparison with Zackay, et al. (2016).
+## 3.2. Comparison with ZOGY.
 
-We developed a basic implementation of the [Zackay, et al. (2016)][ZOGY] "proper" image differencing procedure in order to compare image differences (see [Appendix III. for details](#c-appendix-iii-implementation-of-basic-zackay-et-al-2016-algorithm)). 
+We developed a basic implementation of the [Zackay, et al. (2016)][ZOGY] proper image differencing procedure ([ZOGY][ZOGY]) in order to compare image differences (see [Appendix III. for details](#c-appendix-iii-implementation-of-basic-ZOGY-algorithm)). 
 
 As shown in [Table 1](#table-1-image-difference-statistics), many of the bulk statistics between image differences derived via the two methods are (as expected) nearly identical. In fact, the two "optimal" image differences are nearly identical, as we show in [Figure 6](#figure-6). The variance of the difference between the two difference images is of the order of 0.05% of the variances of the individual images.
 
@@ -180,7 +180,7 @@ For a more thorough analysis, we recapitulated some of the work of [Slater, et a
 
 # 4. Conclusions and future work
 
-We have shown that performing image difference decorrelation as an "afterburner" post-processing step to [A&L][ALref] image differences generated by the LSST stack is an effective method to eliminate most issues arising from the resulting per-pixel covariance in said images. We also showed that the resulting decorrelated image differences have similar statistical and noise properties to those generated using the "proper image subtraction" method recently proposed by [Zackay, et al. (2016)][ZOGY].
+We have shown that performing image difference decorrelation as an "afterburner" post-processing step to [A&L][ALref] image differences generated by the LSST stack is an effective method to eliminate most issues arising from the resulting per-pixel covariance in said images. We also showed that the resulting decorrelated image differences have similar statistical and noise properties, even in the case of a noisy template, to those generated using the "proper image subtraction" method recently proposed by [Zackay, et al. (2016)][ZOGY].
 
 There still exist several outstanding issues or questions related to details of the decorrelation procedure as it is currently implemented in the LSST stack. We now describe several of those.
 
@@ -242,7 +242,7 @@ $$
 D(k) = \big[ I_1(k) - \kappa(k) I_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}
 $$
 
-To compare this calculation to the [Zackay, et al. (2016)][ZOGY] "proper image subtraction" expression, we take the [Zackay, et al. (2016)][ZOGY] assumption that $\phi_1$ and $\phi_2$ are known, and thus $\kappa(k)=\phi_1(k)/\phi_2(k)$. Substituting this into [Equation 1](#equation-1) gives us:
+To compare this calculation to the [ZOGY][ZOGY] expression, we take the [ZOGY][ZOGY] assumption that $\phi_1$ and $\phi_2$ are known, and thus $\kappa(k)=\phi_1(k)/\phi_2(k)$. Substituting this into [Equation 1](#equation-1) gives us:
 
 $$
 D(k) = \big[ \phi_2(k)I_1(k) - \phi_1(k) I_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2\phi_2^2(k) + \overline{\sigma}_2^2\phi_1^2(k)}},
@@ -250,9 +250,9 @@ $$
 
 which is identical to Equation (13) in [Zackay, et al. (2016)][ZOGY] ([Equation 4](#equation-3) below), except for an additional factor $\sqrt{\overline{\sigma}_1^2 + \overline{\sigma}_2^2}$.
 
-### 5.C. Appendix III. Implementation of basic Zackay et al. (2016) algorithm.
+### 5.C. Appendix III. Implementation of basic ZOGY algorithm.
 
-We applied the basic [Zackay, et al. (2016)][ZOGY] procedure only to a set of small, simulated images. Our implementation simply applies Equation (14) of [their manuscript][ZOGY] to the two simulated reference ($R$) and "new" ($N$) images, providing their (known) PSFs $P_r$, $P_n$ and variances $\sigma_r^2$, $\sigma_n^2$as to derive the proper difference image $D$:
+We applied the basic [Zackay, et al. (2016)][ZOGY] procedure only to a set of small, simulated images. Our implementation simply applies Equation (14) of [their manuscript][ZOGY] to the two simulated reference ($R$) and "new" ($N$) images, providing their (known) PSFs $P_r$, $P_n$ and variances $\sigma_r^2$, $\sigma_n^2$ to derive the proper difference image $D$:
 
 ###### Equation 4.
 $$
