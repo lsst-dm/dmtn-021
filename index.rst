@@ -799,6 +799,40 @@ the image difference :math:`\widehat{D}` to obtain the final image
         D = ifftshift(d.real)
         return D
 
+We note that we can also perform the operation in a way that allows us
+to avoid FT-ing the images directly. This involves computing two
+convolution kernels in :math:`k`-space, convolving each of the two
+images, and then subtracting. If we define two convolution kernels
+:math:`\zeta` and :math:`\eta` such that:
+
+.. math::
+
+
+   \widehat{\xi} = 1/ \sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2},
+
+.. math::
+
+
+   \widehat{\zeta} = \widehat{P_r}/\widehat{\xi},
+
+ and
+
+.. math::
+
+
+   \widehat{\eta} = \widehat{P_n}/\widehat{\xi},
+
+then we can iFFT :math:`\widehat{\zeta}` and :math:`\widehat{\eta}` and
+compute
+
+.. math::
+
+
+   D = (N \otimes \zeta) - (R \otimes \eta).
+
+We have performed this calculation and we obtain identical image
+differences to those computed using Equation 4, above.
+
 5.D. Appendix IV. Notebooks and code
 ------------------------------------
 

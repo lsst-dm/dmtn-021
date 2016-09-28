@@ -277,6 +277,27 @@ def performZackay(R, N, P_r, P_n, sig1, sig2):
     return D
 ```
 
+We note that we can also perform the operation in a way that allows us to avoid FT-ing the images directly. This involves computing two convolution kernels in $k$-space, convolving each of the two images, and then subtracting. If we define two convolution kernels $\zeta$ and $\eta$ such that: 
+
+$$
+\widehat{\xi} = 1/ \sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2},
+$$
+$$
+\widehat{\zeta} = \widehat{P_r}/\widehat{\xi},
+$$
+and
+$$
+\widehat{\eta} = \widehat{P_n}/\widehat{\xi},
+$$
+
+then we can iFFT $\widehat{\zeta}$ and $\widehat{\eta}$ and compute
+
+$$
+D = (N \otimes \zeta) - (R \otimes \eta).
+$$
+
+We have performed this calculation and we obtain identical image differences to those computed using Equation 4, above.
+
 ### 5.D. Appendix IV. Notebooks and code
 
 All figures in this document were generated using IPython notebooks and associated code in [the diffimTests github repository](https://github.com/lsst-dm/diffimTests), in particular, notebooks numbered [14](https://github.com/lsst-dm/diffimTests/blob/master/14.%20Test%20Lupton(ZOGY)%20post%20convolution%20kernel%20on%20simulated%20(noisy)%202-D%20data%20with%20a%20variable%20source-updated.ipynb), [13](https://github.com/lsst-dm/diffimTests/blob/master/13.%20compare%20L(ZOGY)%20and%20ZOGY%20diffims%20and%20PSFs.ipynb), [17](https://github.com/lsst-dm/diffimTests/blob/master/17.%20Do%20it%20in%20the%20stack%20with%20real%20data.ipynb), [19](https://github.com/lsst-dm/diffimTests/blob/master/19.%20check%20variance%20planes.ipynb), and [20](https://github.com/lsst-dm/diffimTests/blob/master/20.%20compare%20photometry.ipynb).
