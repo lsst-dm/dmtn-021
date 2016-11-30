@@ -1,11 +1,4 @@
 :tocdepth: 2
-Implementation of Image Difference Decorrelation for LSST Transient Detection
-=============================================================================
-
-.. raw:: html
-
-   <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=default"></script>
-
 Abstract
 ========
 
