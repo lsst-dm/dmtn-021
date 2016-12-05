@@ -120,11 +120,8 @@ to image differencing (`Zackay, et al.
 matching, this results in an image difference in Fourier space
 :math:`D(k)`:
 
-*Equation 1.*
-~~~~~~~~~~~~~
-
 .. math::
-
+   :label: equation-1
 
    D(k) = \big[ I_1(k) - \kappa(k) I_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}
 
@@ -135,16 +132,13 @@ image :math:`I_i` -- i.e.,
 Thus, we may perform PSF matching to estimate :math:`\kappa` by standard
 methods (e.g.,
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ and related
-methods) and then correct for the noise in the template via `Eq.
-1 <#equation-1>`__. The term in the square-root of `Eq.
-1 <#equation-1>`__ is a *post-subtraction convolution kernel*, or
+methods) and then correct for the noise in the template via :eq:`equation-1`.
+The term in the square-root of :eq:`equation-1`
+is a *post-subtraction convolution kernel*, or
 decorrelation kernel :math:`\psi(k)`,
 
-*Equation 2.*
-~~~~~~~~~~~~~
-
 .. math::
-
+   :label: equation-2
 
    \psi(k) = \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}},
 
@@ -166,8 +160,8 @@ Since the current implementation of
 in (real) image space, we implement the image decorrelation in image
 space as well. The *post-subtraction convolution kernel* :math:`\psi(k)`
 is computed in frequency space from :math:`\kappa(k)`,
-:math:`\overline{\sigma}_1`, and :math:`\overline{\sigma}_2` (`Equation
-2 <#equation-2>`__), and is inverse Fourier-transformed to a kernel
+:math:`\overline{\sigma}_1`, and :math:`\overline{\sigma}_2`,
+:eq:`equation-2`, and is inverse Fourier-transformed to a kernel
 :math:`\psi` in real space. The image difference is then convolved with
 :math:`\psi` to obtain the decorrelated image difference,
 :math:`D^\prime = \psi \otimes \big[ I_1 - (\kappa \otimes I_2) \big]`.
@@ -228,11 +222,8 @@ case, we convolve :math:`I_1` with a "pre-conditioning" kernel :math:`M`
 (typically, equal to the PSF of :math:`I_1`), and the decorrelated image
 difference is then:
 
-*Equation 3.*
-~~~~~~~~~~~~~
-
 .. math::
-
+   :label: equation-3
 
    D(k) = \big[ M(k)I_1(k) - \kappa(k) I_2(k) \big] \sqrt{\frac{\overline{\sigma}_1^2 + \overline{\sigma}_2^2}{M^2(k)\overline{\sigma}_1^2 + \kappa^2(k) \overline{\sigma}_2^2}}
 
@@ -268,8 +259,7 @@ variation, including spatially-varying astrometric offsets (which can be
 modeled by the
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ PSF matching
 kernel). An example input template and science image, as well as
-PSF-matched template and resulting *diffim* is shown in `Figure
-1 <#figure-1>`__.
+PSF-matched template and resulting *diffim* is shown in :numref:`figure-1`.
 
 .. figure:: _static/img0.png
    :name: figure-1
@@ -279,50 +269,52 @@ PSF-matched template and resulting *diffim* is shown in `Figure
    example, the source near the center was set to increase in flux by 2%
    between the science and template images.
 
-In `Figure 2 <#figure-2>`__, we show the PSF matching kernel
-(:math:`\kappa`) that was estimated for the images shown in `Figure
-1 <#figure-1>`__, and the resulting decorrelation kernel, :math:`\psi`.
+In :numref:`figure-2a` and :numref:`figure-2b`, we show the PSF matching kernel
+(:math:`\kappa`) that was estimated for the images shown in
+:numref:`figure-1`, and the resulting decorrelation kernel, :math:`\psi`.
 We note that :math:`\psi` largely has the structure of a delta function,
 with a small region of negative signal, thus its capability, when
 convolved with the difference image, to act effectively as a
 "sharpening" kernel.
 
 .. figure:: _static/img1.png
-   :name: 
+   :name: figure-2a
+
+   Sample PSF matching kernel :math:`\kappa` for the images shown in :numref:`figure-1`.
 
 .. figure:: _static/img2.png
-   :name: figure-2
+   :name: figure-2b
 
-   Sample PSF matching kernel :math:`\kappa` (left) and resulting
-   decorrelation kernel :math:`\psi` (right) for the images shown in
-   `Figure 1 <#figure-1>`__.
+   Resulting decorrelation kernel :math:`\psi` (right) for the images shown in :numref:`figure-1`.
 
-When we convolve :math:`\psi` (`Figure 2 <#figure-2>`__, right panel)
-with the raw image difference (`Figure 1 <#figure-1>`__, right-most
+When we convolve :math:`\psi` (:numref:`figure-2b`)
+with the raw image difference (:numref:`figure-1`)
 panel), we obtain the decorrelated image, shown in the left-most panel
-of `Figure 3 <#figure-3>`__. The noise visually appears to be greater in
+of :numref:`figure-3`. The noise visually appears to be greater in
 the decorrelated image, and a closer look at the statistics reveals that
-this is indeed the case (`Table 1 <#table-1>`__, `Figure
-4 <#figure-4>`__ and `Figure 5 <#figure-5>`__). `Figure 4 <#figure-4>`__
+this is indeed the case (:numref:`table-1`, :numref:`figure-4`,
+:numref:`figure-5a`, and :numref:`figure-5b`). :numref:`figure-4`
 shows that the variance of the decorrelated image has increased. Indeed,
-the measured variances (`Table 1 <#table-1>`__) reveal that the variance
+the measured variances (:numref:`table-1`) reveal that the variance
 of the uncorrected image difference was lower than expected, while the
 decorrelation has increased the variance to the expected level:
 
-+-----------------------------------------------+----------------------+--------------+
-|                                               | Variance             | Covariance   |
-+===============================================+======================+==============+
-| Corrected                                     | 0.0778               | 0.300        |
-+-----------------------------------------------+----------------------+--------------+
-| Original                                      | 0.0449               | 0.793        |
-+-----------------------------------------------+----------------------+--------------+
-| Expected                                      | 0.0800               | 0.004        |
-+-----------------------------------------------+----------------------+--------------+
-| `ZOGY <https://arxiv.org/abs/1601.02655>`__   | 0.0790\ :math:`^*`   | 0.301        |
-+-----------------------------------------------+----------------------+--------------+
+.. _table-1:
 
- Table 1. Image difference statistics. Variances and neighbor-pixel covariances for image differences derived from two images each with input Gaussian noise with a standard deviation of 0.2 (variance of 0.04). :math:`^*`\ Note that the `ZOGY <https://arxiv.org/abs/1601.02655>`__ procedure intrinsically normalizes the image difference to have unit variance; we have adjusted it to have the same scaling as our method. The measure of covariance is actually the sum of off-diagonal terms divided by the sum of the diagonal terms (and should equal 0 for a perfectly diagonal matrix).
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. table:: Image difference statistics. Variances and neighbor-pixel covariances for image differences derived from two images each with input Gaussian noise with a standard deviation of 0.2 (variance of 0.04). :math:`^*`\ Note that the `ZOGY <https://arxiv.org/abs/1601.02655>`__ procedure intrinsically normalizes the image difference to have unit variance; we have adjusted it to have the same scaling as our method. The measure of covariance is actually the sum of off-diagonal terms divided by the sum of the diagonal terms (and should equal 0 for a perfectly diagonal matrix).
+
+   +-----------------------------------------------+----------------------+--------------+
+   |                                               | Variance             | Covariance   |
+   +===============================================+======================+==============+
+   | Corrected                                     | 0.0778               | 0.300        |
+   +-----------------------------------------------+----------------------+--------------+
+   | Original                                      | 0.0449               | 0.793        |
+   +-----------------------------------------------+----------------------+--------------+
+   | Expected                                      | 0.0800               | 0.004        |
+   +-----------------------------------------------+----------------------+--------------+
+   | `ZOGY <https://arxiv.org/abs/1601.02655>`__   | 0.0790\ :math:`^*`   | 0.301        |
+   +-----------------------------------------------+----------------------+--------------+
+
 
 .. raw:: html
 
@@ -341,8 +333,8 @@ decorrelation has increased the variance to the expected level:
    ```
    -->
 
-In addition, we see (`Table 1 <#table-1>`__ and `Figure
-5 <#figure-5>`__) that the covariances between neighboring pixels in the
+In addition, we see (:numref:`table-1`, :numref:`figure-5a` and :numref:`figure-5b`)
+that the covariances between neighboring pixels in the
 image difference has been significantly decreased following convolution
 with the decorrelation kernel. The covariance matrix has been
 significantly diagonalized. While the covariance of the decorrelated
@@ -371,24 +363,26 @@ procedure.
    On the left is the decorrelated image difference, :math:`D^\prime`.
    Original image difference :math:`D` is shown here for comparison, in
    the right-most panel, with the same intensity scale, as well as in
-   `Figure 1 <#figure-1>`__.
+   :numref:`figure-1`.
 
 .. figure:: _static/img4.png
    :name: figure-4
 
    Histogram of sigma-clipped pixels in the original image difference\*
    :math:`D` (blue; 'orig') and the decorrelated image difference
-   :math:`D^\prime` (red; 'corr') in `Figure 3 <#figure-3>`__.
+   :math:`D^\prime` (red; 'corr') in :numref:`figure-3`.
 
 .. figure:: _static/img5.png
-   :name: 
-
-.. figure:: _static/img6.png
-   :name: figure-5
+   :name: figure-5a
 
    Covariance between neighboring pixels in the original, uncorrected
-   image difference :math:`D` (left) and the decorrelated image
-   difference :math:`D^\prime` (right) in `Figure 3 <#figure-3>`__.
+   image difference :math:`D` in :numref:`figure-3`.
+
+.. figure:: _static/img6.png
+   :name: figure-5b
+
+   Covariance between neighboring pixels in the decorrelated image
+   difference :math:`D^\prime` in :numref:`figure-3`.
 
 3.2. Comparison with ZOGY.
 --------------------------
@@ -399,11 +393,11 @@ procedure (`ZOGY <https://arxiv.org/abs/1601.02655>`__) in order to
 compare image differences (see `Appendix III. for
 details <#c-appendix-iii-implementation-of-basic-ZOGY-algorithm>`__).
 
-As shown in `Table 1 <#table-1-image-difference-statistics>`__, many of
+As shown in :numref:`table-1`, many of
 the bulk statistics between image differences derived via the two
 methods are (as expected) nearly identical. In fact, the two "optimal"
-image differences are nearly identical, as we show in `Figure
-6 <#figure-6>`__. The variance of the difference between the two
+image differences are nearly identical, as we show in
+:numref:`figure-6`. The variance of the difference between the two
 difference images is of the order of 0.05% of the variances of the
 individual images.
 
@@ -425,7 +419,7 @@ standard `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__
 procedure with a spatially-varying PSF matching kernel (default
 configuration parameters). The decorrelation computation may be turned
 on by setting the option ``doDecorrelation=True`` for the
-``imageDifference.py`` command-line task. In `Figure 7 <#figure-7>`__ we
+``imageDifference.py`` command-line task. In :numref:`figure-7` we
 show sub-images of two astrometrically aligned input exposures, the
 PSF-matched template image, and the decorrelated image difference.
 
@@ -446,24 +440,25 @@ of the image, and estimates a constant image variance
 image (sigma-clipped mean of its variance plane; in this example 62.8
 and 60.0 for the science and template images, respectively). The task
 then computes the decorrelation kernel :math:`\psi` from those three
-quantities (`Figure 8 <#figure-8>`__). As expected, the resulting
+quantities (:numref:`figure-8a` and :numref:`figure-8b`). As expected, the resulting
 decorrelated image difference has a greater variance than the
 "uncorrected" image difference (120.8 vs. 66.8), and a value close to
 the naive expected variance :math:`60.0+62.8=122.8`. Additionally, we
-show in `Figure 9 <#figure-9>`__ that the decorrelated DECam image
+show in :numref:`figure-9` that the decorrelated DECam image
 indeed has a lower neighboring-pixel covariance (6.0% off-diagonal
 covariance, vs. 35% for the uncorrected diffim).
 
 .. figure:: _static/img9.png
-   :name: 
+   :name: figure-8a
+
+   Image differencing on real (DECam) data. PSF matching kernels Shown are
+   kernels derived from two corners of the image which showed the greatest
+   variation in the matching kernels (pixel coordinates overlaid).
 
 .. figure:: _static/img10.png
-   :name: figure-8
+   :name: figure-8b
 
-   Image differencing on real (DECam) data. PSF matching kernels (left)
-   and corresponding decorrelation kernels (right). Shown are kernels
-   derived from two corners of the image which showed the greatest
-   variation in the matching kernels (pixel coordinates overlaid).
+   Decorrelation kernels corresponding to :numref:`figure-8a`.
 
 .. figure:: _static/img11.png
    :name: figure-9
@@ -480,8 +475,8 @@ notebook <https://github.com/lsst-dm/diffimTests/blob/master/20.%20compare%20pho
 
 The higher variance of the decorrelated image difference results in a
 smaller number of ``DIA source`` detections (:math:`\sim` 70% fewer) at
-the same default (5.5-:math:`\sigma`) detection threshold (`Table
-2 <#table-2>`__). Notably, if we decrease the detection threshold to the
+the same default (5.5-:math:`\sigma`) detection threshold (:numref:`table-2`).
+Notably, if we decrease the detection threshold to the
 desired 5.0-\ :math:`\sigma` level, the detection count in the
 decorrelated image difference does not increase substantially
 (:math:`\sim 14\%`). However, the number of detections does increase
@@ -490,21 +485,22 @@ if we were to switch to a 5.0-\ :math:`\sigma` detection threshold.
 (This is why the default ``DIA source`` detection threshold has
 previously been set in the LSST stack to 5.5-\ :math:`\sigma`).
 
-+------------------+------------------+--------------+--------------+----------------+
-| Decorrelated?    | Detection        | Positive     | Negative     | Merged         |
-|                  | threshold        | detected     | detected     | detected       |
-+==================+==================+==============+==============+================+
-| Yes              | 5.0              | 43           | 18           | 50             |
-+------------------+------------------+--------------+--------------+----------------+
-| Yes              | 5.5              | 35           | 15           | 41             |
-+------------------+------------------+--------------+--------------+----------------+
-| No               | 5.0              | 89           | 328          | 395            |
-+------------------+------------------+--------------+--------------+----------------+
-| No               | 5.5              | 58           | 98           | 143            |
-+------------------+------------------+--------------+--------------+----------------+
+.. _table-2:
 
- Table 2. Comparison of numbers of DIA sources detected in DECam image difference run with decorrelation turned on or off, and with a 5.5-\ :math:`\sigma` or 5.0-\ :math:`\sigma` detection threshold.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. table:: Comparison of numbers of DIA sources detected in DECam image difference run with decorrelation turned on or off, and with a 5.5-\ :math:`\sigma` or 5.0-\ :math:`\sigma` detection threshold.
+
+   +------------------+------------------+--------------+--------------+----------------+
+   | Decorrelated?    | Detection        | Positive     | Negative     | Merged         |
+   |                  | threshold        | detected     | detected     | detected       |
+   +==================+==================+==============+==============+================+
+   | Yes              | 5.0              | 43           | 18           | 50             |
+   +------------------+------------------+--------------+--------------+----------------+
+   | Yes              | 5.5              | 35           | 15           | 41             |
+   +------------------+------------------+--------------+--------------+----------------+
+   | No               | 5.0              | 89           | 328          | 395            |
+   +------------------+------------------+--------------+--------------+----------------+
+   | No               | 5.5              | 58           | 98           | 143            |
+   +------------------+------------------+--------------+--------------+----------------+
 
 We matched the catalogs of detections between the uncorrected
 ("undecorrelated") and decorrelated image differences (to within
@@ -531,11 +527,11 @@ differences generated by the LSST stack and the resulting issues with
 detection and measurement, but this time using the decorrelated image
 differences. With the help of Dr. Slater, we performed exactly his
 analysis on the same set of DECam images as described in `Slater, et al.
-(2016) <http://dmtn-006.lsst.io>`__. In `Figure 10 <#figure-10>`__
+(2016) <http://dmtn-006.lsst.io>`__. In :numref:`figure-10`
 below, we present an updated version of `Figure 6 from Slater, et al.
 (2016) <http://dmtn-006.lsst.io/#forcephot-sci-template-v197367>`__
-after decorrelation has been performed. We also present in `Figure
-11 <#figure-11>`__ a version of `Figure 7 from Slater, et al.
+after decorrelation has been performed. We also present in :numref:`figure-11a`
+and :numref:`figure-11b` a version of `Figure 7 from Slater, et al.
 (2016) <http://dmtn-006.lsst.io/#forcephot-hists>`__. Our analysis shows
 that the detections in the decorrelated image difference are now nicely
 tracking just at or above the :math:`5\sigma` threshold.
@@ -557,20 +553,22 @@ tracking just at or above the :math:`5\sigma` threshold.
    filtered to remove false detections (e.g., dipoles).
 
 .. figure:: _static/fig11a.png
-   :name: 
-
-.. figure:: _static/fig11b.png
-   :name: figure-11
+   :name: figure-11a
 
    As in Figure 7 from `Slater, et al.
    (2016) <http://dmtn-006.lsst.io//#forcephot-hists>`__: Comparison of
    force photometry SNR (red) versus the SNR in image difference (blue)
    for all sources in a single DECam exposure. The black line shows the
    expected detection counts from random noise (`Slater, et al.
-   (2016) <http://dmtn-006.lsst.io/>`__). The left figure is for
+   (2016) <http://dmtn-006.lsst.io/>`__). Shown here for
    uncorrected image difference (identical to `Slater, et al.
-   (2016) <http://dmtn-006.lsst.io//#forcephot-hists>`__). The right is
-   the same but for sources detected at\* 5-\ :math:`\sigma` \*in the
+   (2016) <http://dmtn-006.lsst.io//#forcephot-hists>`__). 
+
+.. figure:: _static/fig11b.png
+   :name: figure-11b
+
+   Same as :numref:`figure-11a`,
+   but for sources detected at\* 5-\ :math:`\sigma` \*in the
    decorrelated image difference.
 
 4. Conclusions and future work
@@ -596,7 +594,7 @@ the LSST stack. We now describe several of those.
 
 There will be spatial variations across an image of the PSF matching
 kernel and the template- and science-image per-pixel variances (an
-example of the kernel variation is shown in `Figure 8 <#figure-8>`__).
+example of the kernel variation is shown in :numref:`figure-8a` and :numref:`figure-8b`).
 These three parameters separately will contribute to spatial variations
 in the decorrelation kernel :math:`\psi`, with unknown resulting
 second-order effects on the resulting decorrelated image. If these
@@ -609,8 +607,8 @@ include the accurate spatial variations.
 
 We explored the effect of spatial variations in all three of these
 parameters for a single example DECam CCD image subtraction. The PSF
-matching kernel for this image varies across the image (`Figure
-8 <#figure-8>`__), and thus so does the resulting decorrelation kernel,
+matching kernel for this image varies across the image (:numref:`figure-8a` and :numref:`figure-8a`),
+and thus so does the resulting decorrelation kernel,
 :math:`\psi`. Additionally, the noise (quantified in the variance planes
 of the two exposures) varies across both the template and science images
 by :math:`\sim 1\%` (data not shown here, but see `this IPython
@@ -729,7 +727,7 @@ The variance diverges at large :math:`k` as :math:`\phi_1^2(k)`
 approaches zero, but (as shown by `Kaiser (2004) <#references>`__ and
 `Zackay, et al. (2016) <https://arxiv.org/abs/1601.02655>`__) we can
 flatten the noise spectrum ("whiten the noise") to obtain the expression
-in `Equation 1 <#equation-1$>`__, which we will repeat here:
+in :eq:`equation-1`, which we will repeat here:
 
 .. math::
 
@@ -740,8 +738,8 @@ To compare this calculation to the
 `ZOGY <https://arxiv.org/abs/1601.02655>`__ expression, we take the
 `ZOGY <https://arxiv.org/abs/1601.02655>`__ assumption that
 :math:`\phi_1` and :math:`\phi_2` are known, and thus
-:math:`\kappa(k)=\phi_1(k)/\phi_2(k)`. Substituting this into `Equation
-1 <#equation-1>`__ gives us:
+:math:`\kappa(k)=\phi_1(k)/\phi_2(k)`. Substituting this into
+:eq:`equation-1` gives us:
 
 .. math::
 
@@ -749,8 +747,8 @@ To compare this calculation to the
    D(k) = \big[ \phi_2(k)I_1(k) - \phi_1(k) I_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2\phi_2^2(k) + \overline{\sigma}_2^2\phi_1^2(k)}},
 
 which is identical to Equation (13) in `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ (`Equation
-4 <#equation-3>`__ below), except for an additional factor
+(2016) <https://arxiv.org/abs/1601.02655>`__,
+:eq:`equation-3` below, except for an additional factor
 :math:`\sqrt{\overline{\sigma}_1^2 + \overline{\sigma}_2^2}`.
 
 5.C. Appendix III. Implementation of basic ZOGY algorithm.
@@ -765,11 +763,8 @@ their (known) PSFs :math:`P_r`, :math:`P_n` and variances
 :math:`\sigma_r^2`, :math:`\sigma_n^2` to derive the proper difference
 image :math:`D`:
 
-Equation 4.
-~~~~~~~~~~~
-
 .. math::
-
+   :label: equation-4
 
    \widehat{D} = \frac{F_r\widehat{P_r}\widehat{N} - F_n\widehat{P_n}\widehat{R}}{\sqrt{\sigma_n^2 F_r^2 \left|\widehat{P_r}\right|^2 + \sigma_r^2 F_n^2 \left|\widehat{P_n}\right|^2}}.
 
@@ -827,7 +822,7 @@ compute
    D = (N \otimes \zeta) - (R \otimes \eta).
 
 We have performed this calculation and we obtain identical image
-differences to those computed using Equation 4, above.
+differences to those computed using :eq:`equation-4`, above.
 
 5.D. Appendix IV. Notebooks and code
 ------------------------------------
