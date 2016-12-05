@@ -1,4 +1,7 @@
 :tocdepth: 2
+
+**DOI:** `10.5281/zenodo.192833 <http://dx.doi.org/10.5281/zenodo.192833>`_
+
 Abstract
 ========
 

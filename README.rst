@@ -1,3 +1,13 @@
+.. image:: https://img.shields.io/badge/dmtn--021-lsst.io-brightgreen.svg
+   :target: https://dmtn-021.lsst.io
+   :alt: Technote website
+.. image:: https://img.shields.io/travis/lsst-dm/dmtn-021/master.svg?maxAge=2592000
+   :target: https://travis-ci.org/lsst-dm/dmtn-021
+   :alt: Travis build status
+.. image:: https://zenodo.org/badge/doi/10.5281/zenodo.192833.svg
+   :target: http://dx.doi.org/10.5281/zenodo.192833
+   :alt: doi:10.5281/zenodo.192833
+
 #########################################################
 DMTN-021 Implementation of Image Difference Decorrelation
 #########################################################
@@ -5,16 +15,10 @@ DMTN-021 Implementation of Image Difference Decorrelation
 A short description of this document
 
 View this technote at http://dmtn-021.lsst.io or see a preview of the
-current version in `this repo`_
+current version in `this repo`_.
 
 .. _this repo: ./index.rst
 
-
-
-..
-  Uncomment this section and modify the DOI strings to include a Zenodo DOI badge in the README
-  .. image:: https://zenodo.org/badge/doi/10.5281/zenodo.#####.svg
-     :target: http://dx.doi.org/10.5281/zenodo.#####
 
 Build this technical note
 =========================

@@ -28,7 +28,7 @@ version: '1.0'
 
 # Digital Object Identifier (DOI). Uncomment if available.
 # Keep this DOI updated as new releases are pushed to Zenodo
-# doi: 10.5281/zenodo.#####
+doi: 10.5281/zenodo.192833
 
 # Copyright statement
 copyright: '2016, AURA/LSST'
