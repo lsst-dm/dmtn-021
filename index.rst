@@ -36,7 +36,7 @@ optimal image subtraction is enabled through point spread function (PSF)
 matching via the method of `Alard & Lupton
 (1998) <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ (hereafter
 *A&L*) (also, `Alard,
-2000 <http://aas.aanda.org/articles/aas/pdf/2000/11/ds8706.pdf%5D>`__).
+2000 <http://aas.aanda.org/articles/aas/pdf/2000/11/ds8706.pdf>`__).
 This procedure is used to estimate a convolution kernel which, when
 convolved with the template, matches the PSF of the template with that
 of the science image by minimizing the mean squared difference between
