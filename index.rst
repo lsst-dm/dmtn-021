@@ -2,30 +2,29 @@
 Implementation of Image Difference Decorrelation
 ################################################
 
+.. image:: https://img.shields.io/badge/DOI-10.71929/rubin/2586490-blue.svg
+  :target: https://doi.org/10.71929/rubin/2586490
+  :alt: DOI: 10.71929/rubin/2586490
+  :height: 16
+
 .. abstract::
 
-   A short description of this document
+   Herein, we describe a method for decorrelating image differences
+   produced by the :cite:t:`1998ApJ...503..325A` method of
+   PSF matching. Inspired by the recent work of :cite:t:`2016ApJ...830...27Z` and the prior work of
+   :cite:t:`Kaiser04`, this proposed method uses a single
+   post-subtraction convolution of an image difference to remove the
+   neighboring pixel covariances in the image difference that result from
+   the convolution of the template image by the PSF matching kernel. We
+   describe the method in detail, analyze its effects on image differences
+   (both real and simulated) as well as on detections and photometry of
+   detected sources in decorrelated image differences. We also compare the
+   decorrelated image differences with those resulting from a basic
+   implementation of :cite:t:`2016ApJ...830...27Z`. We describe the
+   implementation of the new correction in the LSST image differencing
+   pipeline, and discuss potential issues and areas of future research.
 
-
-**DOI:** `10.5281/zenodo.192833 <http://dx.doi.org/10.5281/zenodo.192833>`_
-
-Abstract
-========
-
-Herein, we describe a method for decorrelating image differences
-produced by the :cite:t:`1998ApJ...503..325A` method of
-PSF matching. Inspired by the recent work of :cite:t:`2016ApJ...830...27Z` and the prior work of
-:cite:t:`Kaiser04`, this proposed method uses a single
-post-subtraction convolution of an image difference to remove the
-neighboring pixel covariances in the image difference that result from
-the convolution of the template image by the PSF matching kernel. We
-describe the method in detail, analyze its effects on image differences
-(both real and simulated) as well as on detections and photometry of
-detected sources in decorrelated image differences. We also compare the
-decorrelated image differences with those resulting from a basic
-implementation of :cite:t:`2016ApJ...830...27Z`. We describe the
-implementation of the new correction in the LSST image differencing
-pipeline, and discuss potential issues and areas of future research.
+**DOI:** `10.71929/rubin/2586490 <https://doi.org/10.71929/rubin/2586490>`_
 
 1. Introduction
 ===============
