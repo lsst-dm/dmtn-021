@@ -13,11 +13,9 @@ Abstract
 ========
 
 Herein, we describe a method for decorrelating image differences
-produced by the `Alard & Lupton
-(1998) <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ method of
-PSF matching. Inspired by the recent work of `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ and the prior work of
-`Kaiser (2004) <#references>`__, this proposed method uses a single
+produced by the :cite:t:`1998ApJ...503..325A` method of
+PSF matching. Inspired by the recent work of :cite:t:`2016ApJ...830...27Z` and the prior work of
+:cite:t:`Kaiser04`, this proposed method uses a single
 post-subtraction convolution of an image difference to remove the
 neighboring pixel covariances in the image difference that result from
 the convolution of the template image by the PSF matching kernel. We
@@ -25,8 +23,7 @@ describe the method in detail, analyze its effects on image differences
 (both real and simulated) as well as on detections and photometry of
 detected sources in decorrelated image differences. We also compare the
 decorrelated image differences with those resulting from a basic
-implementation of `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__. We describe the
+implementation of :cite:t:`2016ApJ...830...27Z`. We describe the
 implementation of the new correction in the LSST image differencing
 pipeline, and discuss potential issues and areas of future research.
 
@@ -38,18 +35,15 @@ analysis", or "DIA", is the standard method for identifying and
 measuring transients and variables in astronomical images. In DIA, a
 science image is subtracted from a template image (hereafter, simply,
 "template"), in order to identify transients from either image. In the
-LSST stack (and most other existing transient detection pipelines),
+LSST stack :cite:`PSTN-019` (and most other existing transient detection pipelines),
 optimal image subtraction is enabled through point spread function (PSF)
-matching via the method of `Alard & Lupton
-(1998) <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ (hereafter
-*A&L*) (also, `Alard,
-2000 <http://aas.aanda.org/articles/aas/pdf/2000/11/ds8706.pdf%5D>`__).
+matching via the method of :cite:t:`1998ApJ...503..325A` (hereafter
+*A&L*) (also, :cite:t:`2000A&AS..144..363A`).
 This procedure is used to estimate a convolution kernel which, when
 convolved with the template, matches the PSF of the template with that
 of the science image by minimizing the mean squared difference between
 the matched template and science image, given the assumption of no
-variability between the two. The
-`A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ procedure
+variability between the two. The A&L procedure
 uses linear basis functions, with potentially spatially-varying linear
 coefficients, to model the potentially spatially-varying matching kernel
 which can flexibly account for spatially-varying differences in PSFs
@@ -69,21 +63,19 @@ is comprised of a small number of co-adds), then its convolution with
 the matching kernel leads to significant covariance of noise among
 neighboring pixels within the resulting subtracted image, which will
 adversely affect accurate detection and measurement if not accounted for
-(`Slater, et al. (2016) <http://dmtn-006.lsst.io>`__; `Price & Magnier
-(2004) <#references>`__). False detections in this case can be reduced
+:cite:`DMTN-006,2019arXiv190109999P`. False detections in this case can be reduced
 by tracking the covariance matrix, or more *ad-hoc*, increasing the
 detection threshold (as is the current implementation, where detection
 is performed at 5.5-\ :math:`\sigma` rather than the canonical
 5.0-\ :math:`\sigma`).
 
 While LSST will, over its ten-year span, collect dozens of observations
-per field and passband, at the onset of the survey, this number will be
+per field and passband :cite:`2019ApJ...873..111I`, at the onset of the survey, this number will be
 small enough that this issue of noisy templates will be important.
 Moreover, if we intend to bin templates by airmass to account for
 differential chromatic refraction (DCR), then the total number of coadds
 contributing to each template will necessarily be smaller. Finally,
-depending upon the flavor of coadd (`Bosch,
-2016 <http://dmtn-015.lsst.io>`__) used to construct the template,
+depending upon the flavor of coadd :cite:`DMTN-015` used to construct the template,
 template noise and the resulting covariances in the image difference
 will be more or less of an issue as the survey progresses.
 
@@ -116,13 +108,11 @@ II. <#b-appendix-ii-derivation>`__
 2.1. Difference image decorrelation.
 ------------------------------------
 
-An algorithm developed by `Kaiser (2004) <#references>`__ and later
-rediscovered by `Zackay, et al.
-(2015) <http://arxiv.org/abs/1512.06879>`__ showed that the noise in a
+An algorithm developed by :cite:t:`Kaiser04` and later
+rediscovered by :cite:t:`2017ApJ...836..188Z` showed that the noise in a
 PSF-matched coadd image can be decorrelated via noise whitening (i.e.
 flattening the noise spectrum). The same principle may also be applied
-to image differencing (`Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__). In the case of
+to image differencing :cite:p:`2016ApJ...830...27Z`. In the case of
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ PSF
 matching, this results in an image difference in Fourier space
 :math:`D(k)`:
@@ -156,8 +146,7 @@ convolution of :math:`I_2` with the
 kernel :math:`\kappa`. It also (explicitly) contains an extra factor of
 :math:`\sqrt{\overline{\sigma}_1^2+\overline{\sigma}_2^2}`, which sets
 the overall adjusted variance of the noise of the image difference (in
-contrast to the unit variance set by the algorithm proposed by `Zackay,
-et al. (2016) <https://arxiv.org/abs/1601.02655>`__).
+contrast to the unit variance set by the algorithm proposed by :cite:t:`2016ApJ...830...27Z`.
 
 2.2. Implementation details
 ---------------------------
@@ -204,8 +193,7 @@ the decorrelated image difference is also adjusted to the correct
 variance.
 
 The decorrelation proposal has similarities to the image differencing
-method proposed by `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ (hereafter, simply
+method proposed by :cite:t:`2016ApJ...830...27Z` (hereafter, simply
 `ZOGY <https://arxiv.org/abs/1601.02655>`__, which involves FFT-ing the
 two input images and their PSFs. It also does not require accurate
 measurements of PSFs of the two images, while
@@ -394,8 +382,7 @@ procedure.
 3.2. Comparison with ZOGY.
 --------------------------
 
-We developed a basic implementation of the `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ proper image differencing
+We developed a basic implementation of the :cite:t:`2016ApJ...830...27Z` proper image differencing
 procedure (`ZOGY <https://arxiv.org/abs/1601.02655>`__) in order to
 compare image differences (see `Appendix III. for
 details <#c-appendix-iii-implementation-of-basic-ZOGY-algorithm>`__).
@@ -526,15 +513,13 @@ image. Unsurprisingly, the quantified errors in the flux measurements
 (``base_CircularApertureFlux_50_0_fluxSigma``) are
 :math:`\sim 120 \pm 5\%` greater in the decorrelated image.
 
-For a more thorough analysis, we recapitulated some of the work of
-`Slater, et al. (2016) <http://dmtn-006.lsst.io>`__, which described the
+For a more thorough analysis, we recapitulated some of the work of :cite:t:`DMTN-006`, which described the
 issue with per-pixel covariance in
 `A&L <http://adsabs.harvard.edu/abs/1998ApJ...503..325A>`__ image
 differences generated by the LSST stack and the resulting issues with
 detection and measurement, but this time using the decorrelated image
 differences. With the help of Dr. Slater, we performed exactly his
-analysis on the same set of DECam images as described in `Slater, et al.
-(2016) <http://dmtn-006.lsst.io>`__. In :numref:`figure-10`
+analysis on the same set of DECam images as described in :cite:t:`DMTN-006`. In :numref:`figure-10`
 below, we present an updated version of `Figure 6 from Slater, et al.
 (2016) <http://dmtn-006.lsst.io/#forcephot-sci-template-v197367>`__
 after decorrelation has been performed. We also present in :numref:`figure-11a`
@@ -566,10 +551,9 @@ tracking just at or above the :math:`5\sigma` threshold.
    (2016) <http://dmtn-006.lsst.io//#forcephot-hists>`__: Comparison of
    force photometry SNR (red) versus the SNR in image difference (blue)
    for all sources in a single DECam exposure. The black line shows the
-   expected detection counts from random noise (`Slater, et al.
-   (2016) <http://dmtn-006.lsst.io/>`__). Shown here for
+   expected detection counts from random noise :cite:`DMTN-006`. Shown here for
    uncorrected image difference (identical to `Slater, et al.
-   (2016) <http://dmtn-006.lsst.io//#forcephot-hists>`__). 
+   (2016) <http://dmtn-006.lsst.io//#forcephot-hists>`__).
 
 .. figure:: _static/fig11b.png
    :name: figure-11b
@@ -589,8 +573,7 @@ eliminate most issues arising from the resulting per-pixel covariance in
 said images. We also showed that the resulting decorrelated image
 differences have similar statistical and noise properties, even in the
 case of a noisy template, to those generated using the "proper image
-subtraction" method recently proposed by `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__.
+subtraction" method recently proposed by :cite:t:`2016ApJ...830...27Z`.
 
 There still exist several outstanding issues or questions related to
 details of the decorrelation procedure as it is currently implemented in
@@ -651,7 +634,7 @@ and (ideally) perform an interpolation to estimate a spatially-varying
 ---------------------------
 
 The measurement and classification of dipoles in image differences,
-described in `Reiss (2016) <http://dmtn-007.lsst.io>`__ is complicated
+described in :cite:t:`DMTN-007` is complicated
 by image difference decorrelation, because dipole fitting is constrained
 using signal from the "pre-subtraction" template and science images, as
 well as the difference image. The prior assumption (for uncorrected
@@ -731,8 +714,8 @@ with noise having variance
    \mathrm{Var}(\hat{D}(k)) = \frac{\overline\sigma^2_1+\kappa^2(k)\overline\sigma^2_2}{\phi^2_1(k)}.
 
 The variance diverges at large :math:`k` as :math:`\phi_1^2(k)`
-approaches zero, but (as shown by `Kaiser (2004) <#references>`__ and
-`Zackay, et al. (2016) <https://arxiv.org/abs/1601.02655>`__) we can
+approaches zero, but (as shown by :cite:t:`Kaiser04` and
+:cite:t:`2016ApJ...830...27Z`) we can
 flatten the noise spectrum ("whiten the noise") to obtain the expression
 in :eq:`equation-1`, which we will repeat here:
 
@@ -753,16 +736,14 @@ To compare this calculation to the
 
    D(k) = \big[ \phi_2(k)I_1(k) - \phi_1(k) I_2(k) \big] \sqrt{ \frac{ \overline{\sigma}_1^2 + \overline{\sigma}_2^2}{ \overline{\sigma}_1^2\phi_2^2(k) + \overline{\sigma}_2^2\phi_1^2(k)}},
 
-which is identical to Equation (13) in `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__,
+which is identical to Equation (13) in :cite:t:`2016ApJ...830...27Z`,
 :eq:`equation-3` below, except for an additional factor
 :math:`\sqrt{\overline{\sigma}_1^2 + \overline{\sigma}_2^2}`.
 
 5.C. Appendix III. Implementation of basic ZOGY algorithm.
 ----------------------------------------------------------
 
-We applied the basic `Zackay, et al.
-(2016) <https://arxiv.org/abs/1601.02655>`__ procedure only to a set of
+We applied the basic :cite:t:`2016ApJ...830...27Z` procedure only to a set of
 small, simulated images. Our implementation simply applies Equation (14)
 of `their manuscript <https://arxiv.org/abs/1601.02655>`__ to the two
 simulated reference (:math:`R`) and "new" (:math:`N`) images, providing
@@ -854,12 +835,7 @@ in the ``ip_diffim`` and ``pipe_tasks`` LSST Github repos.
 We would like to thank C. Slater for re-running his DECam image analysis
 scripts using the new decorrelation code in the stack.
 
-7. References
-=============
+References
+==========
 
-Details on references to unpublished works:
-
-1. Kaiser (2004), PSDC-002-01[01]-00: Addition of Images with Varying
-   Seeing
-2. Price & Magnier (2004), “Pan-STARRS Image Processing Pipeline:
-   PSF-Matching for Subtraction and Stacking”
+.. bibliography::
