@@ -1,4 +1,11 @@
-:tocdepth: 2
+################################################
+Implementation of Image Difference Decorrelation
+################################################
+
+.. abstract::
+
+   A short description of this document
+
 
 **DOI:** `10.5281/zenodo.192833 <http://dx.doi.org/10.5281/zenodo.192833>`_
 
