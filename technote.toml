@@ -7,6 +7,8 @@ github_default_branch = "main"
 organization.name = "Vera C. Rubin Observatory"
 organization.ror = "https://ror.org/048g3cy84"
 license.id = "CC-BY-4.0"
+date_created = 2016-06-14T00:03:48Z
+date_updated = 2016-12-05T18:52:15Z
 [[technote.authors]]
 name = {given = "David J.", family = "Reiss"}
 internal_id = "reissdj"
